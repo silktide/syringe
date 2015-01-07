@@ -17,10 +17,13 @@ class ReferenceResolver implements ReferenceResolverInterface
      * {@inheritDoc}
      * @throws ReferenceException
      */
-    public function resolveService($arg, Container $container)
+    public function resolveService($arg, Container $container, $alias = "")
     {
+        if (!is_string($alias)) {
+            $alias = "";
+        }
         if ($arg[0] == ContainerBuilder::SERVICE_CHAR) {
-            $name = substr($arg, 1);
+            $name = $this->aliasThisKey(substr($arg, 1), $alias);
             // check if the service exists
             if (!$container->offsetExists($name)) {
                 throw new ReferenceException(sprintf("Tried to inject the service '%s', but it doesn't exist", $name));
@@ -34,10 +37,13 @@ class ReferenceResolver implements ReferenceResolverInterface
      * {@inheritDoc}
      * @throws ReferenceException
      */
-    public function resolveParameter($arg, Container $container)
+    public function resolveParameter($arg, Container $container, $alias = "")
     {
         if (!is_string($arg)) {
             return $arg;
+        }
+        if (!is_string($alias)) {
+            $alias = "";
         }
         $maxLoops = 100;
         $thisLoops = 0;
@@ -48,7 +54,7 @@ class ReferenceResolver implements ReferenceResolverInterface
             // find the first parameter in the string
             $start = strpos($arg, $char) + 1;
             $end = strpos($arg, $char, $start);
-            $name = substr($arg, $start, $end - $start);
+            $name = $this->aliasThisKey(substr($arg, $start, $end - $start), $alias);
             if (!$container->offsetExists($name)) {
                 throw new ReferenceException(sprintf("Tried to inject the parameter '%s' in an argument list, but it doesn't exist", $name));
             }

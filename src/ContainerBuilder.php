@@ -402,9 +402,10 @@ class ContainerBuilder {
                         $c = $userData["container"];
                         /** @var ReferenceResolverInterface $resolver */
                         $resolver = $userData["resolver"];
-                        $arg = $resolver->aliasThisKey($arg, $userData["alias"]);
-                        $arg = $resolver->resolveService($arg, $c);
-                        $arg = $resolver->resolveParameter($arg, $c);
+                        $alias = $userData["alias"];
+                        $arg = $resolver->aliasThisKey($arg, $alias);
+                        $arg = $resolver->resolveService($arg, $c, $alias);
+                        $arg = $resolver->resolveParameter($arg, $c, $alias);
                     },
                     $userData
                 );
