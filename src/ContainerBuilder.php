@@ -14,11 +14,14 @@ use Silktide\Syringe\Loader\LoaderInterface;
 class ContainerBuilder {
 
     /**
-     *
+     * The character that identifies a service
+     * e.g. "@service"
      */
     const SERVICE_CHAR = "@";
+
     /**
-     *
+     * The character that identifies the boundaries of a parameter
+     * e.g. "%parameter%"
      */
     const PARAMETER_CHAR = "%";
 
@@ -69,7 +72,7 @@ class ContainerBuilder {
     /**
      * Add a directory to search in when loading configuration files
      *
-     * @param $path
+     * @param string $path
      * @throws Exception\LoaderException
      */
     public function addConfigPath($path)
@@ -92,7 +95,7 @@ class ContainerBuilder {
     }
 
     /**
-     * @param $name
+     * @param string $name
      */
     public function removeLoader($name)
     {
@@ -107,7 +110,7 @@ class ContainerBuilder {
     /**
      * Remove the loader that supports the specified file
      *
-     * @param $file
+     * @param string $file
      */
     public function removeLoaderByFile($file)
     {
@@ -122,23 +125,32 @@ class ContainerBuilder {
     /**
      * Queue a config file to be processed
      *
-     * @param $file
+     * @param string $file
+     * @param string|null $alias
      * @throws Exception\LoaderException
      */
-    public function addConfigFile($file) {
+    public function addConfigFile($file, $alias = null) {
         foreach ($this->configPaths as $path) {
-            if (file_exists($path . $file)) {
-                $this->configFiles[] = $path . $file;
+            $filePath = $path . $file;
+            if (file_exists($filePath)) {
+                if (!is_string($alias)) {
+                    $this->configFiles[] = $filePath;
+                } else {
+                    $this->configFiles[$alias] = $filePath;
+                }
                 return;
             }
         }
         throw new LoaderException(sprintf("The config file '%s' does not exist in any of the configured paths", $file));
     }
 
+    /**
+     * @param array $files
+     */
     public function addConfigFiles(array $files)
     {
-        foreach ($files as $file) {
-            $this->addConfigFile($file);
+        foreach ($files as $alias => $file) {
+            $this->addConfigFile($file, $alias);
         }
     }
 
@@ -149,11 +161,15 @@ class ContainerBuilder {
     {
         $container = new Container();
         
-        foreach ($this->configFiles as $file) {
+        foreach ($this->configFiles as $alias => $file) {
+            if (!is_string($alias)) {
+                // empty alias for numeric keys
+                $alias = "";
+            }
             $config = $this->loadConfig($file);
             $config = $this->processImports($config);
-            $this->processParameters($config, $container);
-            $this->processServices($config, $container);
+            $this->processParameters($config, $container, $alias);
+            $this->processServices($config, $container, $alias);
             
         }
         return $container;
@@ -244,6 +260,7 @@ class ContainerBuilder {
      *
      * @param array $config
      * @param Container $container
+     * @param string $alias
      * @throws Exception\ConfigException
      */
     protected function processParameters(array $config, Container $container, $alias = "")
@@ -266,6 +283,7 @@ class ContainerBuilder {
      *
      * @param array $config
      * @param Container $container
+     * @param string $alias
      * @throws Exception\ConfigException
      */
     protected function processServices(array $config, Container $container, $alias = "")
