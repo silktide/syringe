@@ -135,6 +135,13 @@ class ContainerBuilder {
         throw new LoaderException(sprintf("The config file '%s' does not exist in any of the configured paths", $file));
     }
 
+    public function addConfigFiles(array $files)
+    {
+        foreach ($files as $file) {
+            $this->addConfigFile($file);
+        }
+    }
+
     /**
      * @return Container
      */
