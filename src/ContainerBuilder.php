@@ -239,7 +239,7 @@ class ContainerBuilder {
      * @param Container $container
      * @throws Exception\ConfigException
      */
-    protected function processParameters(array $config, Container $container)
+    protected function processParameters(array $config, Container $container, $alias = "")
     {
         if (!isset($config["parameters"])) {
             return;
@@ -248,6 +248,7 @@ class ContainerBuilder {
             throw new ConfigException("The 'parameters' configuration must be an associative array");
         }
         foreach ($config["parameters"] as $key => $value) {
+            $key = $this->referenceResolver->aliasThisKey($key, $alias);
             $container[$key] = $value;
             $this->parameterNames[] = $key;
         }
@@ -260,7 +261,7 @@ class ContainerBuilder {
      * @param Container $container
      * @throws Exception\ConfigException
      */
-    protected function processServices(array $config, Container $container)
+    protected function processServices(array $config, Container $container, $alias = "")
     {
         if (!isset($config["services"])) {
             return;
@@ -271,29 +272,32 @@ class ContainerBuilder {
 
         // scan for abstract definitions
         foreach ($config["services"] as $key => $definition) {
+
             if (!empty($definition["abstract"])) {
-                $this->abstractDefinitions[self::SERVICE_CHAR . $key] = $definition;
+                $this->abstractDefinitions[self::SERVICE_CHAR . $this->referenceResolver->aliasThisKey($key, $alias)] = $definition;
                 unset ($config["services"][$key]);
             }
         }
 
         // process services
         foreach ($config["services"] as $key => $definition) {
+            $key = $this->referenceResolver->aliasThisKey($key, $alias);
             if (!$this->isAssocArray($definition)) {
                 throw new ConfigException("A service definition must be an associative array");
             }
             // check if this definition extends an abstract one
             if (!empty($definition["extends"])) {
-                if (!isset($this->abstractDefinitions[$definition["extends"]])) {
+                $extends = $this->referenceResolver->aliasThisKey($definition["extends"], $alias);
+                if (!isset($this->abstractDefinitions[$extends])) {
                     throw new ConfigException(
                         sprintf(
                             "The service definition for '%s' extends '%s' but there is no abstract definition of that name",
                             $key,
-                            $definition["extends"]
+                            $extends
                         )
                     );
                 }
-                $definition = array_merge_recursive($this->abstractDefinitions[$definition["extends"]], $definition);
+                $definition = array_merge_recursive($this->abstractDefinitions[$extends], $definition);
             }
 
             // get class
@@ -350,7 +354,7 @@ class ContainerBuilder {
                 if ($definition["factoryService"][0] == self::SERVICE_CHAR) {
                     $definition["factoryService"] = substr($definition["factoryService"], 1);
                 }
-                $factory["service"] = $definition["factoryService"];
+                $factory["service"] = $this->referenceResolver->aliasThisKey($definition["factoryService"], $alias);
             }
 
             // arguments
@@ -361,9 +365,9 @@ class ContainerBuilder {
 
             // add the definition to the container
             // TODO: could this be refactored elsewhere?
-            $container[$key] = function(Container $c) use ($class, $factory, $arguments, $resolver) {
+            $container[$key] = function(Container $c) use ($class, $factory, $arguments, $resolver, $alias) {
                 // parse arguments for injected parameters and services
-                $userData = ["container" => $c, "resolver" => $resolver];
+                $userData = ["container" => $c, "resolver" => $resolver, "alias" => $alias];
                 array_walk_recursive(
                     $arguments,
                     function(&$arg, $key, $userData) {
@@ -373,7 +377,7 @@ class ContainerBuilder {
                         $c = $userData["container"];
                         /** @var ReferenceResolverInterface $resolver */
                         $resolver = $userData["resolver"];
-
+                        $arg = $resolver->aliasThisKey($arg, $userData["alias"]);
                         $arg = $resolver->resolveService($arg, $c);
                         $arg = $resolver->resolveParameter($arg, $c);
                     },

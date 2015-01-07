@@ -28,4 +28,11 @@ interface ReferenceResolverInterface {
      */
     public function resolveParameter($arg, Container $container);
 
+    /**
+     * @param string $key
+     * @param string $alias
+     * @return string
+     */
+    public function aliasThisKey($key, $alias);
+
 } 

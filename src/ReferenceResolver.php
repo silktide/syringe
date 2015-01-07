@@ -3,6 +3,7 @@
  * Silktide Nibbler. Copyright 2013-2014 Silktide Ltd. All Rights Reserved.
  */
 namespace Nibbler\Syringe;
+use Nibbler\Syringe\Exception\ConfigException;
 use Pimple\Container;
 use Nibbler\Syringe\Exception\ReferenceException;
 
@@ -63,6 +64,20 @@ class ReferenceResolver implements ReferenceResolverInterface
             throw new ReferenceException("Could not resolve parameter. The maximum recursion limit was exceeded");
         }
         return $arg;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function aliasThisKey($key, $alias)
+    {
+        if (empty($alias)) {
+            return $key;
+        }
+        if (!is_string($alias)) {
+            throw new ConfigException("Alias must be a string");
+        }
+        return $alias . "." . $key;
     }
 
 } 
