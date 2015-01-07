@@ -2,10 +2,10 @@
 /**
  * Silktide Nibbler. Copyright 2013-2014 Silktide Ltd. All Rights Reserved.
  */
-namespace Nibbler\Syringe;
-use Nibbler\Syringe\Exception\ConfigException;
+namespace Silktide\Syringe;
+use Silktide\Syringe\Exception\ConfigException;
 use Pimple\Container;
-use Nibbler\Syringe\Exception\ReferenceException;
+use Silktide\Syringe\Exception\ReferenceException;
 
 /**
  * Resolves references to existing container definitions

@@ -2,8 +2,8 @@
 /**
  * Silktide Nibbler. Copyright 2013-2014 Silktide Ltd. All Rights Reserved.
  */
-namespace Nibbler\Syringe\Loader;
-use Nibbler\Syringe\Exception\LoaderException;
+namespace Silktide\Syringe\Loader;
+use Silktide\Syringe\Exception\LoaderException;
 
 /**
  * Load a config file in JSON format
@@ -28,7 +28,7 @@ class JsonLoader implements LoaderInterface {
 
     /**
      * {@inheritDoc}
-     * @throws \Nibbler\Syringe\Exception\LoaderException
+     * @throws \Silktide\Syringe\Exception\LoaderException
      */
     public function loadFile($file)
     {

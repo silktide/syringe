@@ -12,7 +12,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Nibbler\\Syringe\\": "src"
+      "Silktide\\Syringe\\": "src"
     }
   },
   "extra": {

@@ -2,11 +2,11 @@
 /**
  * Silktide Nibbler. Copyright 2013-2014 Silktide Ltd. All Rights Reserved.
  */
-namespace Nibbler\Syringe;
+namespace Silktide\Syringe;
 use Pimple\Container;
-use Nibbler\Syringe\Exception\ConfigException;
-use Nibbler\Syringe\Exception\LoaderException;
-use Nibbler\Syringe\Loader\LoaderInterface;
+use Silktide\Syringe\Exception\ConfigException;
+use Silktide\Syringe\Exception\LoaderException;
+use Silktide\Syringe\Loader\LoaderInterface;
 
 /**
  * ContainerBuilder parses configuration files and build a Pimple Container

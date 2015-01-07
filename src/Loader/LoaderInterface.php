@@ -2,7 +2,7 @@
 /**
  * Silktide Nibbler. Copyright 2013-2014 Silktide Ltd. All Rights Reserved.
  */
-namespace Nibbler\Syringe\Loader;
+namespace Silktide\Syringe\Loader;
 
 interface LoaderInterface {
 
