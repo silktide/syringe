@@ -330,7 +330,7 @@ class ContainerBuilder {
                 throw new ConfigException(sprintf("The service definition for %s does not have a class", $key));
             }
             // get class, resolving parameters if necessary
-            $class = $this->referenceResolver->resolveParameter($definition["class"], $container);
+            $class = $this->referenceResolver->resolveParameter($definition["class"], $container, $alias);
 
             if (!class_exists($class)) {
                 throw new ConfigException(sprintf("The service class '%s' does not exist", $class));
@@ -348,7 +348,7 @@ class ContainerBuilder {
                     throw new ConfigException(sprintf("A factory class was specified for '%s', but no method was set", $key));
                 }
                 //... and non-existent classes
-                $factoryClass = $this->referenceResolver->resolveParameter($definition["factoryClass"], $container);
+                $factoryClass = $this->referenceResolver->resolveParameter($definition["factoryClass"], $container, $alias);
                 if (!class_exists($factoryClass)) {
                     throw new ConfigException(
                         sprintf("The factory class '%s', for '%s', does not exist", $factoryClass, $key)
@@ -402,9 +402,10 @@ class ContainerBuilder {
                         $c = $userData["container"];
                         /** @var ReferenceResolverInterface $resolver */
                         $resolver = $userData["resolver"];
-                        $arg = $resolver->aliasThisKey($arg, $userData["alias"]);
-                        $arg = $resolver->resolveService($arg, $c);
-                        $arg = $resolver->resolveParameter($arg, $c);
+                        $alias = $userData["alias"];
+                        $arg = $resolver->aliasThisKey($arg, $alias);
+                        $arg = $resolver->resolveService($arg, $c, $alias);
+                        $arg = $resolver->resolveParameter($arg, $c, $alias);
                     },
                     $userData
                 );
