@@ -13,6 +13,8 @@ use Silktide\Syringe\Exception\ReferenceException;
 class ReferenceResolver implements ReferenceResolverInterface
 {
 
+    protected $replacedParams = [];
+
     /**
      * {@inheritDoc}
      * @throws ReferenceException
@@ -54,21 +56,35 @@ class ReferenceResolver implements ReferenceResolverInterface
             // find the first parameter in the string
             $start = strpos($arg, $char) + 1;
             $end = strpos($arg, $char, $start);
-            $name = $this->aliasThisKey(substr($arg, $start, $end - $start), $alias);
+            $param = substr($arg, $start, $end - $start);
+
+            // alias the param and check if it has already been replaced (circular reference)
+            $name = $this->aliasThisKey($param, $alias);
+            if (isset($this->replacedParams[$name])) {
+                if (isset($this->replacedParams[$param])) {
+                    throw new ReferenceException("Circular reference found for the key '$param'");
+                }
+                // the aliased param has been replaced, check for a non aliased version
+                $name = $param;
+            }
             if (!$container->offsetExists($name)) {
                 throw new ReferenceException(sprintf("Tried to inject the parameter '%s' in an argument list, but it doesn't exist", $name));
             }
             if (strlen($arg) > strlen($name) + 2) {
                 // string replacement
                 $arg = str_replace($char . $name . $char, $container[$name], $arg);
+
             } else {
                 // value replacement
                 $arg = $container[$name];
             }
+            // add param name to the replacement list
+            $this->replacedParams[$name] = true;
         }
         if ($thisLoops >= $maxLoops) {
-            throw new ReferenceException("Could not resolve parameter. The maximum recursion limit was exceeded");
+            throw new ReferenceException("Could not resolve parameter '$arg'. The maximum recursion limit was exceeded");
         }
+        $this->replacedParams = [];
         return $arg;
     }
 
