@@ -26,6 +26,18 @@ class ContainerBuilder {
     const PARAMETER_CHAR = "%";
 
     /**
+     * Default class name for the container
+     */
+    const DEFAULT_CONTAINER_CLASS = "Pimple\\Container";
+
+    /**
+     * Contains the class name for the container we want to create
+     *
+     * @var string
+     */
+    protected $containerClass = self::DEFAULT_CONTAINER_CLASS;
+
+    /**
      * @var array
      */
     protected $loaders = [];
@@ -67,6 +79,20 @@ class ContainerBuilder {
         foreach ($configPaths as $path) {
             $this->addConfigPath($path);
         }
+    }
+
+    public function setContainerClass($containerClass)
+    {
+        // check existence
+        if (!class_exists($containerClass)) {
+            throw new ConfigException(sprintf("The container class '%s' does not exist", $containerClass));
+        }
+        // check the class is a container
+        if ($containerClass != self::DEFAULT_CONTAINER_CLASS && !is_subclass_of($containerClass, self::DEFAULT_CONTAINER_CLASS)) {
+            throw new ConfigException(sprintf("The class '%s' is not a subclass of '%s'", $containerClass, self::DEFAULT_CONTAINER_CLASS));
+        }
+
+        $this->containerClass = $containerClass;
     }
 
     /**
@@ -159,7 +185,7 @@ class ContainerBuilder {
      */
     public function createContainer()
     {
-        $container = new Container();
+        $container = new $this->containerClass();
         
         foreach ($this->configFiles as $alias => $file) {
             if (!is_string($alias)) {
