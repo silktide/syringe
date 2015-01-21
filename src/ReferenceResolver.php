@@ -49,7 +49,7 @@ class ReferenceResolver implements ReferenceResolverInterface
         }
         $maxLoops = 100;
         $thisLoops = 0;
-        while ($thisLoops < $maxLoops && substr_count($arg, ContainerBuilder::PARAMETER_CHAR) > 1) {
+        while ($thisLoops < $maxLoops && is_string($arg) && substr_count($arg, ContainerBuilder::PARAMETER_CHAR) > 1) {
             ++$thisLoops;
             // parameters
             $char = ContainerBuilder::PARAMETER_CHAR;
