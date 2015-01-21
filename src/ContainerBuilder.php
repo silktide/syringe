@@ -156,15 +156,21 @@ class ContainerBuilder {
      * @throws Exception\LoaderException
      */
     public function addConfigFile($file, $alias = null) {
+
+        $filePath = $this->findConfigFile($file);
+        if (!is_string($alias)) {
+            $this->configFiles[] = $filePath;
+        } else {
+            $this->configFiles[$alias] = $filePath;
+        }
+    }
+
+    protected function findConfigFile($file)
+    {
         foreach ($this->configPaths as $path) {
             $filePath = $path . $file;
             if (file_exists($filePath)) {
-                if (!is_string($alias)) {
-                    $this->configFiles[] = $filePath;
-                } else {
-                    $this->configFiles[$alias] = $filePath;
-                }
-                return;
+                return $filePath;
             }
         }
         throw new LoaderException(sprintf("The config file '%s' does not exist in any of the configured paths", $file));
@@ -264,14 +270,16 @@ class ContainerBuilder {
     protected function processImports(array $config)
     {
         if (isset($config["inherit"])) {
-            $inheritedConfig = $this->loadConfig($config["inherit"]);
+            $filePath = $this->findConfigFile($config["inherit"]);
+            $inheritedConfig = $this->loadConfig($filePath);
             // check for recursive imports or inheritance
             $inheritedConfig = $this->processImports($inheritedConfig);
             $config = array_merge_recursive($inheritedConfig, $config);
         }
         if (isset($config["imports"]) && is_array($config["imports"])) {
             foreach ($config["imports"] as $file) {
-                $importConfig = $this->loadConfig($file);
+                $filePath = $this->findConfigFile($file);
+                $importConfig = $this->loadConfig($filePath);
                 // check for recursive imports or inheritance
                 $importConfig = $this->processImports($importConfig);
                 $config = array_merge_recursive($config, $importConfig);
