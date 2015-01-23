@@ -307,7 +307,10 @@ class ContainerBuilder {
         }
         foreach ($config["parameters"] as $key => $value) {
             $key = $this->referenceResolver->aliasThisKey($key, $alias);
-            $container[$key] = $value;
+            $resolver = $this->referenceResolver;
+            $container[$key] = function () use ($value, $resolver, $container) {
+                return $resolver->resolveParameter($value, $container);
+            };
             $this->parameterNames[] = $key;
         }
     }
