@@ -17,7 +17,7 @@ interface ReferenceResolverInterface {
      * @param Container $container
      * @return mixed
      */
-    public function resolveService($arg, Container $container);
+    public function resolveService($arg, Container $container, $alias = "");
 
     /**
      * inserts parameters references into $arg, recursively if required
@@ -26,7 +26,7 @@ interface ReferenceResolverInterface {
      * @param Container $container
      * @return mixed
      */
-    public function resolveParameter($arg, Container $container);
+    public function resolveParameter($arg, Container $container, $alias = "");
 
     /**
      * @param string $key
