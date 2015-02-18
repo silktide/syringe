@@ -41,6 +41,12 @@ class ReferenceResolver implements ReferenceResolverInterface
      */
     public function resolveParameter($arg, Container $container, $alias = "")
     {
+        if (is_array($arg)) {
+            // check each element for parameters
+            foreach ($arg as $key => $value) {
+                $arg[$key] = $this->resolveParameter($value, $container, $alias);
+            }
+        }
         if (!is_string($arg)) {
             return $arg;
         }
