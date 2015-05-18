@@ -41,7 +41,6 @@ class YamlLoader implements LoaderInterface {
         try {
             $data = $parser->parse(file_get_contents($file));
         } catch (ParseException $e) {
-            printf("Unable to parse the YAML string: %s", $e->getMessage());
             throw new LoaderException(sprintf("Could not load the YAML file '%s': %s", $file, $e->getMessage()));
         }
         return $data;
