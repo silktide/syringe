@@ -58,6 +58,11 @@ class ContainerBuilder {
     protected $referenceResolver;
 
     /**
+     * @var ServiceFactory
+     */
+    protected $serviceFactory;
+
+    /**
      * @var array
      */
     protected $abstractDefinitions = [];
@@ -192,6 +197,10 @@ class ContainerBuilder {
     public function createContainer()
     {
         $container = new $this->containerClass();
+        // setup the service factory if necessary
+        if (empty($this->serviceFactory)) {
+            $this->serviceFactory = new ServiceFactory($container, $this->referenceResolver);
+        }
         
         foreach ($this->configFiles as $alias => $file) {
             if (!is_string($alias)) {
@@ -422,38 +431,30 @@ class ContainerBuilder {
             // arguments
             $arguments = !empty($definition["arguments"])? $definition["arguments"]: [];
 
-            // ... because we need a variable to pass to the Closure
-            $resolver = $this->referenceResolver;
+            // calls / setters
+            $calls = !empty($definition["calls"])? $definition["calls"]: [];
+            foreach ($calls as $i => &$call) {
+                if (empty($call["method"])) {
+                    throw new ConfigException(sprintf("Call '%s' for the service '%s' does not specify a method name", $i, $key));
+                }
+                if (!method_exists($class, $call["method"])) {
+                    throw new ConfigException(sprintf("Error for service '%s': the method call '%s' does not exist for the class '%s'", $key, $call["method"], $class));
+                }
+
+                if (empty($call["arguments"])) {
+                    // if no arguments have been defined, set arguments to an empty array
+                    $call["arguments"] = [];
+                } else {
+                    if (!is_array($call["arguments"])) {
+                        throw new ConfigException(sprintf("Error for service '%s': the method call '%s' has invalid arguments", $key, $call["method"]));
+                    }
+                }
+            }
 
             // add the definition to the container
-            // TODO: could this be refactored elsewhere?
-            $container[$key] = function(Container $c) use ($class, $factory, $arguments, $resolver, $alias) {
+            $container[$key] = function() use ($class, $factory, $arguments, $calls, $alias) {
                 // parse arguments for injected parameters and services
-                $userData = ["container" => $c, "resolver" => $resolver, "alias" => $alias];
-                array_walk_recursive(
-                    $arguments,
-                    function(&$arg, $key, $userData) {
-                        if (!is_string($arg)) {
-                            return;
-                        }
-                        $c = $userData["container"];
-                        /** @var ReferenceResolverInterface $resolver */
-                        $resolver = $userData["resolver"];
-                        $alias = $userData["alias"];
-                        $arg = $resolver->resolveService($arg, $c, $alias);
-                        $arg = $resolver->resolveParameter($arg, $c, $alias);
-                    },
-                    $userData
-                );
-
-                // create the class in the standard way if were not using a factory
-                if (empty($factory["class"]) && empty($factory["service"])) {
-                    $ref = new \ReflectionClass($class);
-                    return $ref->newInstanceArgs($arguments);
-                }
-                // create via factory
-                $factoryClass = empty($factory["class"])? $c[$factory["service"]]: $factory["class"];
-                return call_user_func_array([$factoryClass, $factory["method"]], $arguments);
+                return $this->serviceFactory->createService($class, $factory, $arguments, $calls, $alias);
             };
 
         }
