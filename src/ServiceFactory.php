@@ -22,7 +22,7 @@ class ServiceFactory
         $this->resolver = $resolver;
     }
 
-    public function createService($class, array $factoryDefinition, array $arguments, array $calls, $alias = "")
+    public function createService($class, array $factory, array $arguments, array $calls, $alias = "")
     {
         // resolve any parameters or services in the constructor and call arguments (thus finding resolution exceptions ASAP)
         $arguments = $this->resolveArguments($arguments, $alias);
