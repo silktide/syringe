@@ -29,6 +29,7 @@ class ServiceFactory
         foreach ($calls as &$call) {
             $call["arguments"] = $this->resolveArguments($call["arguments"], $alias);
         }
+        unset($call);
 
         // create the service instance
         if (empty($factory["class"]) && empty($factory["service"])) {
