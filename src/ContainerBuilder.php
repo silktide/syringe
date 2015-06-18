@@ -283,7 +283,7 @@ class ContainerBuilder {
             $inheritedConfig = $this->loadConfig($filePath);
             // check for recursive imports or inheritance
             $inheritedConfig = $this->processImports($inheritedConfig);
-            $config = array_merge_recursive($inheritedConfig, $config);
+            $config = array_replace_recursive($inheritedConfig, $config);
         }
         if (isset($config["imports"]) && is_array($config["imports"])) {
             foreach ($config["imports"] as $file) {
@@ -291,7 +291,7 @@ class ContainerBuilder {
                 $importConfig = $this->loadConfig($filePath);
                 // check for recursive imports or inheritance
                 $importConfig = $this->processImports($importConfig);
-                $config = array_merge_recursive($config, $importConfig);
+                $config = array_replace_recursive($config, $importConfig);
             }
         }
         
@@ -368,7 +368,7 @@ class ContainerBuilder {
                         )
                     );
                 }
-                $definition = array_merge_recursive($this->abstractDefinitions[$extends], $definition);
+                $definition = array_replace_recursive($this->abstractDefinitions[$extends], $definition);
             }
 
             // get class
