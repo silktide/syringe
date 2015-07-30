@@ -368,7 +368,14 @@ class ContainerBuilder {
                         )
                     );
                 }
+
+                // As calls gets wiped out by the replace_recursive, so we need to store it and merge it seperately
+                $calls = !empty($definition["calls"]) ? $definition["calls"] : [];
+                if (!empty($this->abstractDefinitions[$extends]["calls"])) {
+                    $calls = array_merge($calls, $this->abstractDefinitions[$extends]["calls"]);
+                }
                 $definition = array_replace_recursive($this->abstractDefinitions[$extends], $definition);
+                $definition["calls"] = $calls;
             }
 
             // get class
