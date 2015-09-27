@@ -1,9 +1,7 @@
 <?php
-/**
- * Silktide Nibbler. Copyright 2013-2014 Silktide Ltd. All Rights Reserved.
- */
 
 namespace Silktide\Syringe;
+
 use Pimple\Container;
 
 /**
@@ -71,6 +69,7 @@ class ServiceFactory
         $alias = $userData["alias"];
         $argument = $resolver->resolveService($argument, $c, $alias);
         $argument = $resolver->resolveParameter($argument, $c, $alias);
+        $argument = $resolver->resolveTag($argument, $c);
     }
 
 } 
