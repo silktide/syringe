@@ -1,13 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: doug
- * Date: 18/05/15
- * Time: 11:42
- */
 
 namespace Silktide\Syringe\Loader;
-
 
 use Silktide\Syringe\Exception\LoaderException;
 use Symfony\Component\Yaml\Exception\ParseException;
