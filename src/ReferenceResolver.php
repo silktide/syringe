@@ -1,8 +1,7 @@
 <?php
-/**
- * Silktide Nibbler. Copyright 2013-2014 Silktide Ltd. All Rights Reserved.
- */
+
 namespace Silktide\Syringe;
+
 use Silktide\Syringe\Exception\ConfigException;
 use Pimple\Container;
 use Silktide\Syringe\Exception\ReferenceException;
@@ -92,6 +91,29 @@ class ReferenceResolver implements ReferenceResolverInterface
         }
         $this->replacedParams = [];
         return $arg;
+    }
+
+    public function resolveTag($tag, Container $container)
+    {
+        if (!is_string($tag) || $tag[0] != ContainerBuilder::TAG_CHAR) {
+            return $tag;
+        }
+
+        if (!isset($container[$tag])) {
+            return [];
+        }
+
+        $collection = $container[$tag];
+        if (!$collection instanceof TagCollection) {
+            throw new ReferenceException("Could not resolve the tag collection for '$tag'. The collection was invalid");
+        }
+
+        $services = [];
+        foreach ($collection->getServices() as $serviceName) {
+            $services[] = $container[$serviceName];
+        }
+
+        return $services;
     }
 
     /**

@@ -1,8 +1,7 @@
 <?php
-/**
- * Silktide Nibbler. Copyright 2013-2014 Silktide Ltd. All Rights Reserved.
- */
+
 namespace Silktide\Syringe;
+
 use Pimple\Container;
 use Silktide\Syringe\Exception\ConfigException;
 use Silktide\Syringe\Exception\LoaderException;
@@ -24,6 +23,11 @@ class ContainerBuilder {
      * e.g. "%parameter%"
      */
     const PARAMETER_CHAR = "%";
+
+    /**
+     * The character that identifies a collection of service with a specific tag
+     */
+    const TAG_CHAR = "#";
 
     /**
      * Default class name for the container
@@ -353,6 +357,12 @@ class ContainerBuilder {
         // process services
         foreach ($config["services"] as $key => $definition) {
             $key = $this->referenceResolver->aliasThisKey($key, $alias);
+
+            // check for collisions
+            if (isset($container[$key])) {
+                throw new ConfigException(sprintf("Tried to define a service named '%s', but that name already exists in the container", $key));
+            }
+
             if (!$this->isAssocArray($definition)) {
                 throw new ConfigException("A service definition must be an associative array");
             }
@@ -369,7 +379,7 @@ class ContainerBuilder {
                     );
                 }
 
-                // As calls gets wiped out by the replace_recursive, so we need to store it and merge it seperately
+                // As calls gets wiped out by the replace_recursive, so we need to store it and merge it separately
                 $calls = !empty($definition["calls"]) ? $definition["calls"] : [];
                 if (!empty($this->abstractDefinitions[$extends]["calls"])) {
                     $calls = array_merge($calls, $this->abstractDefinitions[$extends]["calls"]);
@@ -455,6 +465,24 @@ class ContainerBuilder {
                     if (!is_array($call["arguments"])) {
                         throw new ConfigException(sprintf("Error for service '%s': the method call '%s' has invalid arguments", $key, $call["method"]));
                     }
+                }
+            }
+
+            // tags
+            if (!empty($definition["tags"])) {
+                if (!is_array($definition["tags"])) {
+                    throw new ConfigException(sprintf("Error for service '%s': the tags definition was not in the expected array format", $key));
+                }
+                foreach ($definition["tags"] as $tag) {
+                    $tag = self::TAG_CHAR . $tag;
+                    if (!isset($container[$tag])) {
+                        $container[$tag] = function() {
+                            return new TagCollection();
+                        };
+                    }
+                    /** @var TagCollection $collection */
+                    $collection = $container[$tag];
+                    $collection->addService($key);
                 }
             }
 
