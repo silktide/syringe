@@ -13,7 +13,8 @@
   },
   "autoload": {
     "psr-4": {
-      "Silktide\\Syringe\\": "src"
+      "Silktide\\Syringe\\": "src",
+      "Silktide\\Syringe\\Test\\": "test"
     }
   },
   "extra": {
