@@ -1,6 +1,6 @@
 # Syringe
 
-![](https://img.shields.io/badge/owner-danny-brightgreen.svg)
+![](https://img.shields.io/badge/owner-danny smart-brightgreen.svg)
 
 Dependency Injection configuration library, using Pimple.
 
