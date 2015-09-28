@@ -1,7 +1,7 @@
 {
   "name": "silktide/syringe",
-  "description": "Nibbler Syringe, configuration utility for Pimple",
-  "license": "proprietary",
+  "description": "Silktide Syringe, configuration utility for Pimple",
+  "license": "MIT",
   "homepage": "https://github.com/silktide/syringe",
   "require": {
     "php": ">=5.3.0",

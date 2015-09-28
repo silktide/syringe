@@ -1,11 +1,13 @@
-syringe
-=======
+# Syringe
 
-Dependency injection configuration library for Pimple, created by Danny Smart
+![](https://img.shields.io/badge/owner-danny-brightgreen.svg)
 
-TODO
-====
+Dependency Injection configuration library, using Pimple.
 
-* ~~Setter injection~~
-* ~~Service tags, a la Symfony~~
-* ~~Inject a collection of services (via tags or pattern matching the service name)~~
+# Installation
+
+``composer require silktide/syringe``
+
+# Credits
+
+Written by Danny Smart 
