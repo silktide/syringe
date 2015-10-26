@@ -47,6 +47,11 @@ class ServiceFactory
         return $service;
     }
 
+    public function aliasService($service, $alias)
+    {
+        return $this->resolver->resolveService($service, $this->container, $alias);
+    }
+
     protected function resolveArguments(array $arguments, $alias)
     {
         $userData = ["container" => $this->container, "resolver" => $this->resolver, "alias" => $alias];

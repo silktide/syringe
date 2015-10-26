@@ -19,4 +19,9 @@ if (count($collection->services) != 1 || !$collection->services[0] instanceof \S
     throw new \Exception("An incorrect service was injected: " . print_r($collection->services, true));
 }
 
+$duds = $container["duds"];
+if ($duds !== $collection) {
+    throw new \Exception("Aliased service did not return the same object as the original service");
+}
+
 echo "\nAll tests passed\n";
