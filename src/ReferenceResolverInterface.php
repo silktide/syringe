@@ -14,6 +14,7 @@ interface ReferenceResolverInterface {
      *
      * @param $arg
      * @param Container $container
+     * @param string $alias
      * @return mixed
      */
     public function resolveService($arg, Container $container, $alias = "");
@@ -23,9 +24,19 @@ interface ReferenceResolverInterface {
      *
      * @param $arg
      * @param Container $container
+     * @param string $alias
      * @return mixed
      */
     public function resolveParameter($arg, Container $container, $alias = "");
+
+    /**
+     * returns an array of services that have been tagged with the specified value
+     *
+     * @param string $tag
+     * @param Container $container
+     * @return array
+     */
+    public function resolveTag($tag, Container $container);
 
     /**
      * @param string $key
