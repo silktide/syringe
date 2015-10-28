@@ -24,10 +24,16 @@ class ReferenceResolver implements ReferenceResolverInterface
             $alias = "";
         }
         if ($arg[0] == ContainerBuilder::SERVICE_CHAR) {
-            $name = $this->aliasThisKey(substr($arg, 1), $alias);
+            $originalName = substr($arg, 1);
+            $name = $this->aliasThisKey($originalName, $alias);
             // check if the service exists
             if (!$container->offsetExists($name)) {
-                throw new ReferenceException(sprintf("Tried to inject the service '%s', but it doesn't exist", $name));
+                $name = $originalName;
+
+                if (!$container->offsetExists($name)) {
+                    throw new ReferenceException(sprintf("Tried to inject the service '%s', but it doesn't exist", $name));
+                }
+
             }
             $arg = $container[$name];
         }
