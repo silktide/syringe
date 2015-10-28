@@ -185,6 +185,15 @@ class ContainerBuilder {
         throw new LoaderException(sprintf("The config file '%s' does not exist in any of the configured paths", $file));
     }
 
+    protected function findImportedConfigFile($file, $dir)
+    {
+        $filePath = $dir . "/" . $file;
+        if (file_exists($filePath)) {
+            return $filePath;
+        }
+        throw new LoaderException(sprintf("The import file '%s' does not exist in the directory '%s'", $file, $dir));
+    }
+
     /**
      * @param array $files
      */
@@ -212,7 +221,7 @@ class ContainerBuilder {
                 $alias = "";
             }
             $config = $this->loadConfig($file);
-            $config = $this->processImports($config);
+            $config = $this->processImports($config, dirname($file));
             $this->processParameters($config, $container, $alias);
             $this->processServices($config, $container, $alias);
             
@@ -277,24 +286,27 @@ class ContainerBuilder {
      * Inherited configuration can be overwritten by the current configuration
      * Imported configuration can overwrite what we already have
      *
+     * Both are restricted to importing files relative to the parent config file
+     *
      * @param array $config
+     * @param $importDir
      * @return array
      */
-    protected function processImports(array $config)
+    protected function processImports(array $config, $importDir)
     {
         if (isset($config["inherit"])) {
-            $filePath = $this->findConfigFile($config["inherit"]);
+            $filePath = $this->findImportedConfigFile($config["inherit"], $importDir);
             $inheritedConfig = $this->loadConfig($filePath);
             // check for recursive imports or inheritance
-            $inheritedConfig = $this->processImports($inheritedConfig);
+            $inheritedConfig = $this->processImports($inheritedConfig, $importDir);
             $config = array_replace_recursive($inheritedConfig, $config);
         }
         if (isset($config["imports"]) && is_array($config["imports"])) {
             foreach ($config["imports"] as $file) {
-                $filePath = $this->findConfigFile($file);
+                $filePath = $this->findImportedConfigFile($file, $importDir);
                 $importConfig = $this->loadConfig($filePath);
                 // check for recursive imports or inheritance
-                $importConfig = $this->processImports($importConfig);
+                $importConfig = $this->processImports($importConfig, $importDir);
                 $config = array_replace_recursive($config, $importConfig);
             }
         }
