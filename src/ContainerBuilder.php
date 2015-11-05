@@ -57,6 +57,16 @@ class ContainerBuilder {
     protected $configFiles = [];
 
     /**
+     * @var string
+     */
+    protected $applicationRootDirectory;
+
+    /**
+     * @var string
+     */
+    protected $applicationRootDirectoryKey;
+
+    /**
      * @var ReferenceResolverInterface
      */
     protected $referenceResolver;
@@ -174,6 +184,19 @@ class ContainerBuilder {
         }
     }
 
+    public function setApplicationRootDirectory($directory, $key = "")
+    {
+        if (!is_dir($directory)) {
+            throw new ConfigException(sprintf("Cannot set the application root directory. '%s' is not a directory", $directory));
+        }
+        if (empty($key)) {
+            $key = "app.dir";
+        }
+
+        $this->applicationRootDirectory = $directory;
+        $this->applicationRootDirectoryKey = $key;
+    }
+
     protected function findConfigFile($file)
     {
         foreach ($this->configPaths as $path) {
@@ -226,6 +249,9 @@ class ContainerBuilder {
             $this->processServices($config, $container, $alias);
             
         }
+
+        $this->applyApplicationRootDirectory($container);
+
         return $container;
     }
 
@@ -266,6 +292,13 @@ class ContainerBuilder {
             }
         }
         throw new LoaderException(sprintf("The file '%s' is not supported by any of the available loaders", $file));
+    }
+
+    protected function applyApplicationRootDirectory(Container $container)
+    {
+        if (!empty($this->applicationRootDirectory)) {
+            $container[$this->applicationRootDirectoryKey] = $this->applicationRootDirectory;
+        }
     }
 
     /**
