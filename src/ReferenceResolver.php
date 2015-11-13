@@ -151,7 +151,7 @@ class ReferenceResolver implements ReferenceResolverInterface
             // if we don't have a period character, it can't be aliased
             return false;
         }
-        $alias = substr($key, 0, $dot + 1);
+        $alias = substr($key, 0, $dot);
 
         // check if the "alias" is registered
         return isset($this->registeredAliases[$alias]);
