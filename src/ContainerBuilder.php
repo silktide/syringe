@@ -237,7 +237,10 @@ class ContainerBuilder {
         if (empty($this->serviceFactory)) {
             $this->serviceFactory = new ServiceFactory($container, $this->referenceResolver);
         }
-        
+
+        $aliases = array_keys($this->configFiles);
+        $this->referenceResolver->setRegisteredAliases($aliases);
+
         foreach ($this->configFiles as $alias => $file) {
             if (!is_string($alias)) {
                 // empty alias for numeric keys
