@@ -109,7 +109,7 @@ class ReferenceResolver implements ReferenceResolverInterface
 
     public function resolveTag($tag, Container $container)
     {
-        if (!is_string($tag) || $tag[0] != ContainerBuilder::TAG_CHAR) {
+        if (!is_string($tag) || $tag == "" || $tag[0] != ContainerBuilder::TAG_CHAR) {
             return $tag;
         }
 
