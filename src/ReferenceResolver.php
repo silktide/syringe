@@ -14,6 +14,14 @@ class ReferenceResolver implements ReferenceResolverInterface
 
     protected $replacedParams = [];
 
+    protected $registeredAliases = [];
+
+    public function setRegisteredAliases(array $aliases)
+    {
+        // flip so we can use isset() later
+        $this->registeredAliases = array_flip($aliases);
+    }
+
     /**
      * {@inheritDoc}
      * @throws ReferenceException
@@ -69,13 +77,13 @@ class ReferenceResolver implements ReferenceResolverInterface
             $end = strpos($arg, $char, $start);
             $param = substr($arg, $start, $end - $start);
 
-            // alias the param and check if it has already been replaced (circular reference)
+            // alias the param and check if it has already been replaced (circular reference) or is already aliased
             $name = $this->aliasThisKey($param, $alias);
-            if (isset($this->replacedParams[$name])) {
+            if (isset($this->replacedParams[$name]) || ($this->keyIsAliased($param) && !$container->offsetExists($name))) {
                 if (isset($this->replacedParams[$param])) {
                     throw new ReferenceException("Circular reference found for the key '$param'");
                 }
-                // the aliased param has been replaced, check for a non aliased version
+                // use the original param
                 $name = $param;
             }
             if (!$container->offsetExists($name)) {
@@ -134,6 +142,20 @@ class ReferenceResolver implements ReferenceResolverInterface
             throw new ConfigException("Alias must be a string");
         }
         return $alias . "." . $key;
+    }
+
+    protected function keyIsAliased($key)
+    {
+        $dot = strpos($key, ".");
+        if ($dot === false) {
+            // if we don't have a period character, it can't be aliased
+            return false;
+        }
+        $alias = substr($key, 0, $dot + 1);
+
+        // check if the "alias" is registered
+        return isset($this->registeredAliases[$alias]);
+
     }
 
 } 
