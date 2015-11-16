@@ -5,6 +5,7 @@ namespace Silktide\Syringe;
 use Pimple\Container;
 use Silktide\Syringe\Exception\ConfigException;
 use Silktide\Syringe\Exception\LoaderException;
+use Silktide\Syringe\Exception\ReferenceException;
 use Silktide\Syringe\Loader\LoaderInterface;
 
 /**
@@ -237,7 +238,10 @@ class ContainerBuilder {
         if (empty($this->serviceFactory)) {
             $this->serviceFactory = new ServiceFactory($container, $this->referenceResolver);
         }
-        
+
+        $aliases = array_keys($this->configFiles);
+        $this->referenceResolver->setRegisteredAliases($aliases);
+
         foreach ($this->configFiles as $alias => $file) {
             if (!is_string($alias)) {
                 // empty alias for numeric keys
@@ -364,10 +368,21 @@ class ContainerBuilder {
             throw new ConfigException("The 'parameters' configuration must be an associative array");
         }
         foreach ($config["parameters"] as $key => $value) {
-            $key = $this->referenceResolver->aliasThisKey($key, $alias);
+            $aliasedKey = $this->referenceResolver->aliasThisKey($key, $alias);
+            if ($container->offsetExists($aliasedKey) && $alias != "") {
+                continue;
+            }
+            if (!$this->referenceResolver->keyIsAliased($key)) {
+                $key = $aliasedKey;
+            }
+
             $resolver = $this->referenceResolver;
-            $container[$key] = function () use ($value, $resolver, $container) {
-                return $resolver->resolveParameter($value, $container);
+            $container[$key] = function () use ($value, $resolver, $container, $key) {
+                try {
+                    return $resolver->resolveParameter($value, $container);
+                } catch (ReferenceException $e) {
+                    throw new ReferenceException("Error with key '$key'. " . $e->getMessage());
+                }
             };
             $this->parameterNames[] = $key;
         }
@@ -448,7 +463,11 @@ class ContainerBuilder {
                 throw new ConfigException(sprintf("The service definition for %s does not have a class", $key));
             }
             // get class, resolving parameters if necessary
-            $class = $this->referenceResolver->resolveParameter($definition["class"], $container, $alias);
+            try {
+                $class = $this->referenceResolver->resolveParameter($definition["class"], $container, $alias);
+            } catch (ReferenceException $e) {
+                throw new ReferenceException("Error resolving class for '$key'. " . $e->getMessage());
+            }
 
             if (!class_exists($class)) {
                 throw new ConfigException(sprintf("The service class '%s' does not exist", $class));
@@ -466,7 +485,11 @@ class ContainerBuilder {
                     throw new ConfigException(sprintf("A factory class was specified for '%s', but no method was set", $key));
                 }
                 //... and non-existent classes
-                $factoryClass = $this->referenceResolver->resolveParameter($definition["factoryClass"], $container, $alias);
+                try {
+                    $factoryClass = $this->referenceResolver->resolveParameter($definition["factoryClass"], $container, $alias);
+                } catch (ReferenceException $e) {
+                    throw new ReferenceException("Error parsing factory class for '$key'. " . $e->getMessage());
+                }
                 if (!class_exists($factoryClass)) {
                     throw new ConfigException(
                         sprintf("The factory class '%s', for '%s', does not exist", $factoryClass, $key)
