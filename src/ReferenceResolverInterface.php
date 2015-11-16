@@ -45,4 +45,10 @@ interface ReferenceResolverInterface {
      */
     public function aliasThisKey($key, $alias);
 
+    /**
+     * @param string $key
+     * @return bool
+     */
+    public function keyIsAliased($key);
+
 } 

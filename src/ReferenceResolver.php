@@ -144,7 +144,10 @@ class ReferenceResolver implements ReferenceResolverInterface
         return $alias . "." . $key;
     }
 
-    protected function keyIsAliased($key)
+    /**
+     * {@inheritDoc}
+     */
+    public function keyIsAliased($key)
     {
         $dot = strpos($key, ".");
         if ($dot === false) {
