@@ -87,6 +87,8 @@ class ContainerBuilder {
      */
     protected $parameterNames = [];
 
+    protected $serviceAliases = [];
+
     /**
      * @param ReferenceResolverInterface $resolver
      * @param array $configPaths
@@ -394,7 +396,8 @@ class ContainerBuilder {
      * @param array $config
      * @param Container $container
      * @param string $alias
-     * @throws Exception\ConfigException
+     * @throws ConfigException
+     * @throws ReferenceException
      */
     protected function processServices(array $config, Container $container, $alias = "")
     {
@@ -423,6 +426,7 @@ class ContainerBuilder {
                 $container[$key] = function() use ($container, $aliasedService, $alias) {
                     return $this->serviceFactory->aliasService($aliasedService, $alias);
                 };
+                $this->serviceAliases[$key] = true;
                 continue;
             }
 
@@ -430,6 +434,10 @@ class ContainerBuilder {
 
             // check for collisions
             if (isset($container[$key])) {
+                if (isset($this->serviceAliases[$key])) {
+                    // this service has been aliased by another service. We can ignore the definition.
+                    continue;
+                }
                 throw new ConfigException(sprintf("Tried to define a service named '%s', but that name already exists in the container", $key));
             }
 
