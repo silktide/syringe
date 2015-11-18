@@ -16,6 +16,9 @@ class ReferenceResolver implements ReferenceResolverInterface
 
     protected $registeredAliases = [];
 
+    /**
+     * {@inheritDoc}
+     */
     public function setRegisteredAliases(array $aliases)
     {
         // flip so we can use isset() later
