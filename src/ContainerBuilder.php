@@ -524,11 +524,12 @@ class ContainerBuilder {
                 if (!empty($factory["class"])) {
                     throw new ConfigException(sprintf("The definition for '%s' cannot have both a factory class and a factory service", $key));
                 }
-                // remove the service char if it exists
-                if ($definition["factoryService"][0] == self::SERVICE_CHAR) {
-                    $definition["factoryService"] = substr($definition["factoryService"], 1);
+                // add the service char if it does not exist
+                if ($definition["factoryService"][0] != self::SERVICE_CHAR) {
+                    $definition["factoryService"] = "@" . $definition["factoryService"];
                 }
-                $factory["service"] = $this->referenceResolver->aliasThisKey($definition["factoryService"], $alias);
+                // don't alias the service here, we'll do that later when we're about to use it
+                $factory["service"] = $definition["factoryService"];
             }
 
             // arguments
