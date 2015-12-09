@@ -1,0 +1,6 @@
+language: php
+php:
+- 5.5
+before_script:
+  - travis_retry composer self-update && composer --version
+  - composer install --prefer-dist  --optimize-autoloader
