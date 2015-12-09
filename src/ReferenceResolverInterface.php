@@ -39,10 +39,21 @@ interface ReferenceResolverInterface {
     public function resolveTag($tag, Container $container);
 
     /**
+     * @param array $aliases
+     */
+    public function setRegisteredAliases(array $aliases);
+
+    /**
      * @param string $key
      * @param string $alias
      * @return string
      */
     public function aliasThisKey($key, $alias);
+
+    /**
+     * @param string $key
+     * @return bool
+     */
+    public function keyIsAliased($key);
 
 } 

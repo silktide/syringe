@@ -35,7 +35,9 @@ class ServiceFactory
             $service = $ref->newInstanceArgs($arguments);
         } else {
             // create via factory
-            $factoryClass = empty($factory["class"])? $this->container[$factory["service"]]: $factory["class"];
+            $factoryClass = empty($factory["class"])
+                ? $this->resolver->resolveService($factory["service"], $this->container, $alias)
+                : $factory["class"];
             $service = call_user_func_array([$factoryClass, $factory["method"]], $arguments);
         }
 

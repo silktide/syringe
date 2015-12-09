@@ -5,6 +5,7 @@ namespace Silktide\Syringe;
 use Pimple\Container;
 use Silktide\Syringe\Exception\ConfigException;
 use Silktide\Syringe\Exception\LoaderException;
+use Silktide\Syringe\Exception\ReferenceException;
 use Silktide\Syringe\Loader\LoaderInterface;
 
 /**
@@ -57,6 +58,16 @@ class ContainerBuilder {
     protected $configFiles = [];
 
     /**
+     * @var string
+     */
+    protected $applicationRootDirectory;
+
+    /**
+     * @var string
+     */
+    protected $applicationRootDirectoryKey;
+
+    /**
      * @var ReferenceResolverInterface
      */
     protected $referenceResolver;
@@ -75,6 +86,8 @@ class ContainerBuilder {
      * @var array
      */
     protected $parameterNames = [];
+
+    protected $serviceAliases = [];
 
     /**
      * @param ReferenceResolverInterface $resolver
@@ -174,6 +187,19 @@ class ContainerBuilder {
         }
     }
 
+    public function setApplicationRootDirectory($directory, $key = "")
+    {
+        if (!is_dir($directory)) {
+            throw new ConfigException(sprintf("Cannot set the application root directory. '%s' is not a directory", $directory));
+        }
+        if (empty($key)) {
+            $key = "app.dir";
+        }
+
+        $this->applicationRootDirectory = $directory;
+        $this->applicationRootDirectoryKey = $key;
+    }
+
     protected function findConfigFile($file)
     {
         foreach ($this->configPaths as $path) {
@@ -214,7 +240,10 @@ class ContainerBuilder {
         if (empty($this->serviceFactory)) {
             $this->serviceFactory = new ServiceFactory($container, $this->referenceResolver);
         }
-        
+
+        $aliases = array_keys($this->configFiles);
+        $this->referenceResolver->setRegisteredAliases($aliases);
+
         foreach ($this->configFiles as $alias => $file) {
             if (!is_string($alias)) {
                 // empty alias for numeric keys
@@ -226,6 +255,9 @@ class ContainerBuilder {
             $this->processServices($config, $container, $alias);
             
         }
+
+        $this->applyApplicationRootDirectory($container);
+
         return $container;
     }
 
@@ -266,6 +298,13 @@ class ContainerBuilder {
             }
         }
         throw new LoaderException(sprintf("The file '%s' is not supported by any of the available loaders", $file));
+    }
+
+    protected function applyApplicationRootDirectory(Container $container)
+    {
+        if (!empty($this->applicationRootDirectory)) {
+            $container[$this->applicationRootDirectoryKey] = $this->applicationRootDirectory;
+        }
     }
 
     /**
@@ -331,10 +370,21 @@ class ContainerBuilder {
             throw new ConfigException("The 'parameters' configuration must be an associative array");
         }
         foreach ($config["parameters"] as $key => $value) {
-            $key = $this->referenceResolver->aliasThisKey($key, $alias);
+            $aliasedKey = $this->referenceResolver->aliasThisKey($key, $alias);
+            if ($container->offsetExists($aliasedKey) && $alias != "") {
+                continue;
+            }
+            if (!$this->referenceResolver->keyIsAliased($key)) {
+                $key = $aliasedKey;
+            }
+
             $resolver = $this->referenceResolver;
-            $container[$key] = function () use ($value, $resolver, $container) {
-                return $resolver->resolveParameter($value, $container);
+            $container[$key] = function () use ($value, $resolver, $container, $key) {
+                try {
+                    return $resolver->resolveParameter($value, $container);
+                } catch (ReferenceException $e) {
+                    throw new ReferenceException("Error with key '$key'. " . $e->getMessage());
+                }
             };
             $this->parameterNames[] = $key;
         }
@@ -346,7 +396,8 @@ class ContainerBuilder {
      * @param array $config
      * @param Container $container
      * @param string $alias
-     * @throws Exception\ConfigException
+     * @throws ConfigException
+     * @throws ReferenceException
      */
     protected function processServices(array $config, Container $container, $alias = "")
     {
@@ -375,6 +426,7 @@ class ContainerBuilder {
                 $container[$key] = function() use ($container, $aliasedService, $alias) {
                     return $this->serviceFactory->aliasService($aliasedService, $alias);
                 };
+                $this->serviceAliases[$key] = true;
                 continue;
             }
 
@@ -382,6 +434,10 @@ class ContainerBuilder {
 
             // check for collisions
             if (isset($container[$key])) {
+                if (isset($this->serviceAliases[$key])) {
+                    // this service has been aliased by another service. We can ignore the definition.
+                    continue;
+                }
                 throw new ConfigException(sprintf("Tried to define a service named '%s', but that name already exists in the container", $key));
             }
 
@@ -415,7 +471,11 @@ class ContainerBuilder {
                 throw new ConfigException(sprintf("The service definition for %s does not have a class", $key));
             }
             // get class, resolving parameters if necessary
-            $class = $this->referenceResolver->resolveParameter($definition["class"], $container, $alias);
+            try {
+                $class = $this->referenceResolver->resolveParameter($definition["class"], $container, $alias);
+            } catch (ReferenceException $e) {
+                throw new ReferenceException("Error resolving class for '$key'. " . $e->getMessage());
+            }
 
             if (!class_exists($class)) {
                 throw new ConfigException(sprintf("The service class '%s' does not exist", $class));
@@ -433,7 +493,11 @@ class ContainerBuilder {
                     throw new ConfigException(sprintf("A factory class was specified for '%s', but no method was set", $key));
                 }
                 //... and non-existent classes
-                $factoryClass = $this->referenceResolver->resolveParameter($definition["factoryClass"], $container, $alias);
+                try {
+                    $factoryClass = $this->referenceResolver->resolveParameter($definition["factoryClass"], $container, $alias);
+                } catch (ReferenceException $e) {
+                    throw new ReferenceException("Error parsing factory class for '$key'. " . $e->getMessage());
+                }
                 if (!class_exists($factoryClass)) {
                     throw new ConfigException(
                         sprintf("The factory class '%s', for '%s', does not exist", $factoryClass, $key)
@@ -460,11 +524,12 @@ class ContainerBuilder {
                 if (!empty($factory["class"])) {
                     throw new ConfigException(sprintf("The definition for '%s' cannot have both a factory class and a factory service", $key));
                 }
-                // remove the service char if it exists
-                if ($definition["factoryService"][0] == self::SERVICE_CHAR) {
-                    $definition["factoryService"] = substr($definition["factoryService"], 1);
+                // add the service char if it does not exist
+                if ($definition["factoryService"][0] != self::SERVICE_CHAR) {
+                    $definition["factoryService"] = "@" . $definition["factoryService"];
                 }
-                $factory["service"] = $this->referenceResolver->aliasThisKey($definition["factoryService"], $alias);
+                // don't alias the service here, we'll do that later when we're about to use it
+                $factory["service"] = $definition["factoryService"];
             }
 
             // arguments
