@@ -57,6 +57,7 @@ class ServiceFactory
     public function extendService($service, array $calls)
     {
         foreach ($calls as $call) {
+            $call["arguments"] = $this->resolveArguments($call["arguments"], "");
             call_user_func_array([$service, $call["method"]], $call["arguments"]);
         }
         return $service;
