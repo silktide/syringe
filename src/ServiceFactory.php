@@ -54,6 +54,14 @@ class ServiceFactory
         return $this->resolver->resolveService($service, $this->container, $alias);
     }
 
+    public function extendService($service, array $calls)
+    {
+        foreach ($calls as $call) {
+            call_user_func_array([$service, $call["method"]], $call["arguments"]);
+        }
+        return $service;
+    }
+
     protected function resolveArguments(array $arguments, $alias)
     {
         $userData = ["container" => $this->container, "resolver" => $this->resolver, "alias" => $alias];
