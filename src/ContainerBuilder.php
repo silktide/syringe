@@ -255,6 +255,7 @@ class ContainerBuilder {
             $config = $this->processEnvironment($config);
             $this->processParameters($config, $container, $alias);
             $this->processServices($config, $container, $alias);
+            $this->processExtensions($config, $container, $alias);
 
         }
 
@@ -559,22 +560,8 @@ class ContainerBuilder {
 
             // calls / setters
             $calls = !empty($definition["calls"])? $definition["calls"]: [];
-            foreach ($calls as $i => &$call) {
-                if (empty($call["method"])) {
-                    throw new ConfigException(sprintf("Call '%s' for the service '%s' does not specify a method name", $i, $key));
-                }
-                if (!method_exists($class, $call["method"])) {
-                    throw new ConfigException(sprintf("Error for service '%s': the method call '%s' does not exist for the class '%s'", $key, $call["method"], $class));
-                }
-
-                if (empty($call["arguments"])) {
-                    // if no arguments have been defined, set arguments to an empty array
-                    $call["arguments"] = [];
-                } else {
-                    if (!is_array($call["arguments"])) {
-                        throw new ConfigException(sprintf("Error for service '%s': the method call '%s' has invalid arguments", $key, $call["method"]));
-                    }
-                }
+            foreach ($calls as $i => $call) {
+                $calls[$i] = $this->processCall($call, $i, $key, $class);
             }
 
             // tags
@@ -602,6 +589,54 @@ class ContainerBuilder {
             };
 
         }
+    }
+
+    protected function processExtensions(array $config, Container $container, $alias)
+    {
+        $extensions = !empty($config["extensions"])? $config["extensions"]: [];
+
+        foreach ($extensions as $service => $extension) {
+            if (!$container->offsetExists($service)) {
+                $aliasedService = $this->referenceResolver->aliasThisKey($service, $alias);
+                if (!$container->offsetExists($aliasedService)) {
+                    throw new ConfigException(sprintf("Cannot use extension for the service '%s' as it does not exist", $service));
+                }
+                $service = $aliasedService;
+            }
+
+            foreach ($extension as $i => $call) {
+                $extension[$i] = $this->processCall($call, $i, $service . " (extension)");
+            }
+
+            if (!empty($extension)) {
+                $container->extend($service, function($object) use ($extension) {
+                    return $this->serviceFactory->extendService($object, $extension);
+                });
+            }
+
+        }
+
+
+    }
+
+    protected function processCall($call, $i, $key, $class = "")
+    {
+        if (empty($call["method"])) {
+            throw new ConfigException(sprintf("Call '%s' for the service '%s' does not specify a method name", $i, $key));
+        }
+        if (!empty($class) && !method_exists($class, $call["method"])) {
+            throw new ConfigException(sprintf("Error for service '%s': the method call '%s' does not exist for the class '%s'", $key, $call["method"], $class));
+        }
+
+        if (empty($call["arguments"])) {
+            // if no arguments have been defined, set arguments to an empty array
+            $call["arguments"] = [];
+        } else {
+            if (!is_array($call["arguments"])) {
+                throw new ConfigException(sprintf("Error for service '%s': the method call '%s' has invalid arguments", $key, $call["method"]));
+            }
+        }
+        return $call;
     }
 
 }
