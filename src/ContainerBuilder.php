@@ -249,11 +249,13 @@ class ContainerBuilder {
                 // empty alias for numeric keys
                 $alias = "";
             }
+
             $config = $this->loadConfig($file);
             $config = $this->processImports($config, dirname($file));
+            $config = $this->processEnvironment($config);
             $this->processParameters($config, $container, $alias);
             $this->processServices($config, $container, $alias);
-            
+
         }
 
         $this->applyApplicationRootDirectory($container);
@@ -349,7 +351,27 @@ class ContainerBuilder {
                 $config = array_replace_recursive($config, $importConfig);
             }
         }
-        
+
+        return $config;
+    }
+
+    /**
+     * @param $config
+     * @return array
+     */
+    protected function processEnvironment($config)
+    {
+        if (!isset($config["parameters"])) {
+            $config["parameters"] = [];
+        }
+
+        foreach ($_SERVER as $key => $value) {
+            if (0 === stripos($key, "SYRINGE__")) {
+                $key = substr($key, 9);
+                $key = str_replace("__", ".", $key);
+                $config["parameters"][strtolower($key)] = $value;
+            }
+        }
         return $config;
     }
 
@@ -581,5 +603,5 @@ class ContainerBuilder {
 
         }
     }
-    
+
 }
