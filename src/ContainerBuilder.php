@@ -31,6 +31,11 @@ class ContainerBuilder {
     const TAG_CHAR = "#";
 
     /**
+     * The prefix of any environment variables we want to try to automatically import
+     */
+    const ENVIRONMENT_PREFIX = "SYRINGE__";
+
+    /**
      * Default class name for the container
      */
     const DEFAULT_CONTAINER_CLASS = "Pimple\\Container";
@@ -360,20 +365,27 @@ class ContainerBuilder {
      */
     protected function processEnvironment(Container $container)
     {
+        $containerKeys = $container->keys();
+
         // Note: This will only set parameters IF they already exist in some form in the configuration
         foreach ($_SERVER as $key => $value) {
-            if (0 === stripos($key, "SYRINGE__")) {
-                $key = substr($key, 9);
+            if (0 === stripos($key, self::ENVIRONMENT_PREFIX)) {
+                $key = substr($key, strlen(self::ENVIRONMENT_PREFIX));
                 $key = str_replace("__", ".", $key);
                 $key = strtolower($key);
 
                 // Look to see if the environment variable exists purely as lowercase
-                if ($container->offsetExists($key)) {
-                    $container->offsetSet($key, $value);
-                    // If it doesn't, then search through an array of the lowercased container keys to get the offsetKey, then set that
-                } elseif (($offsetKey = array_search(strtolower($key), array_map('strtolower', $container->keys())))!==false){
-                    $container->offsetSet($container->keys()[$offsetKey], $value);
+                if (!$container->offsetExists($key)) {
+                    // If it doesn't, then lowercase the container keys and see if we can find it there
+                    if (($offsetKey = array_search(strtolower($key), array_map('strtolower', $containerKeys)))===false) {
+                        // If we can't, then we shouldn't be setting this variable
+                        continue;
+                    }
+                    // Otherwise, use the correct key
+                    $key = $containerKeys[$offsetKey];
                 }
+
+                $container->offsetSet($key, $value);
             }
         }
     }
