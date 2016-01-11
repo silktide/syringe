@@ -252,15 +252,13 @@ class ContainerBuilder {
 
             $config = $this->loadConfig($file);
             $config = $this->processImports($config, dirname($file));
-            $config = $this->processEnvironment($config);
             $this->processParameters($config, $container, $alias);
             $this->processServices($config, $container, $alias);
             $this->processExtensions($config, $container, $alias);
-
         }
 
+        $this->processEnvironment($container);
         $this->applyApplicationRootDirectory($container);
-
         return $container;
     }
 
@@ -357,23 +355,27 @@ class ContainerBuilder {
     }
 
     /**
-     * @param $config
-     * @return array
+     * @param Container $container
+     * @return mixed
      */
-    protected function processEnvironment($config)
+    protected function processEnvironment(Container $container)
     {
-        if (!isset($config["parameters"])) {
-            $config["parameters"] = [];
-        }
-
+        // Note: This will only set parameters IF they already exist in some form in the configuration
         foreach ($_SERVER as $key => $value) {
             if (0 === stripos($key, "SYRINGE__")) {
                 $key = substr($key, 9);
                 $key = str_replace("__", ".", $key);
-                $config["parameters"][strtolower($key)] = $value;
+                $key = strtolower($key);
+
+                // Look to see if the environment variable exists purely as lowercase
+                if ($container->offsetExists($key)) {
+                    $container->offsetSet($key, $value);
+                    // If it doesn't, then search through an array of the lowercased container keys to get the offsetKey, then set that
+                } elseif (($offsetKey = array_search(strtolower($key), array_map('strtolower', $container->keys())))!==false){
+                    $container->offsetSet($container->keys()[$offsetKey], $value);
+                }
             }
         }
-        return $config;
     }
 
     /**
