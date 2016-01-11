@@ -4,3 +4,5 @@ php:
 before_script:
   - travis_retry composer self-update && composer --version
   - composer install --prefer-source  --optimize-autoloader
+script:
+  echo "Tests to come >_> <_<"
