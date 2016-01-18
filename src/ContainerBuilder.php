@@ -235,12 +235,25 @@ class ContainerBuilder {
         }
     }
 
+
     /**
      * @return Container
      */
     public function createContainer()
     {
         $container = new $this->containerClass();
+        $this->populateContainer($container);
+        return $container;
+    }
+
+    /**
+     * @param Container $container
+     * @throws ConfigException
+     * @throws LoaderException
+     * @throws ReferenceException
+     */
+    public function populateContainer(Container $container)
+    {
         // setup the service factory if necessary
         if (empty($this->serviceFactory)) {
             $this->serviceFactory = new ServiceFactory($container, $this->referenceResolver);
@@ -264,7 +277,6 @@ class ContainerBuilder {
 
         $this->processEnvironment($container);
         $this->applyApplicationRootDirectory($container);
-        return $container;
     }
 
     /**
