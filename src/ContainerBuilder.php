@@ -26,6 +26,12 @@ class ContainerBuilder {
     const PARAMETER_CHAR = "%";
 
     /**
+     * The character that identifies a reference to a constant
+     * e.g. "^MyCompany\\MyClass::MY_CONSTANT" or "^STDOUT"
+     */
+    const CONSTANT_CHAR = "^";
+
+    /**
      * The character that identifies a collection of service with a specific tag
      */
     const TAG_CHAR = "#";
@@ -641,8 +647,6 @@ class ContainerBuilder {
             }
 
         }
-
-
     }
 
     protected function processCall($call, $i, $key, $class = "")
