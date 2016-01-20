@@ -109,11 +109,11 @@ class ReferenceResolver implements ReferenceResolverInterface
         $this->replacedParams = [];
 
         // After the parameters have been resolved, check to see if we're trying to resolve a constant, and if so, resolve it
-        if (strpos($arg, ContainerBuilder::CONSTANT_CHAR)===0) {
-            $constantRef = substr($arg, 1);
+        if (strpos($arg, ContainerBuilder::CONSTANT_CHAR)===0 && strrpos($arg, ContainerBuilder::CONSTANT_CHAR)==(strlen($arg)-1)) {
+            $constantRef = substr($arg, 1, strlen($arg)-2);
 
             if (strpos($constantRef, "::") !== false) {
-                $exploded = explode("::", substr($arg, 1));
+                $exploded = explode("::", $constantRef);
                 $className = $exploded[0];
                 if (!class_exists($className)) {
                     throw new ReferenceException("Referenced class '{$className}' doesn't exist");
