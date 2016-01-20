@@ -110,7 +110,7 @@ class ReferenceResolver implements ReferenceResolverInterface
 
         // After the parameters have been resolved, check to see if we're trying to resolve a constant, and if so, resolve it
         if (strpos($arg, ContainerBuilder::CONSTANT_CHAR)===0 && strrpos($arg, ContainerBuilder::CONSTANT_CHAR)==(strlen($arg)-1)) {
-            $constantRef = substr($arg, 1, strlen($arg)-2);
+            $constantRef = substr($arg, 1, -1);
 
             if (strpos($constantRef, "::") !== false) {
                 $exploded = explode("::", $constantRef);
