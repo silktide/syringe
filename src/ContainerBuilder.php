@@ -641,8 +641,8 @@ class ContainerBuilder {
             }
 
             if (!empty($extension)) {
-                $container->extend($service, function($object) use ($extension) {
-                    return $this->serviceFactory->extendService($object, $extension);
+                $container->extend($service, function($object) use ($extension, $alias) {
+                    return $this->serviceFactory->extendService($object, $extension, $alias);
                 });
             }
 
