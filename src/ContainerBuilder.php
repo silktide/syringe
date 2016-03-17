@@ -501,7 +501,7 @@ class ContainerBuilder {
             }
             // check if this definition extends an abstract one
             if (!empty($definition["extends"])) {
-                $extends = $this->referenceResolver->aliasThisKey($definition["extends"], $alias);
+                $extends = self::SERVICE_CHAR . $this->referenceResolver->aliasThisKey(ltrim($definition["extends"], self::SERVICE_CHAR), $alias);
                 if (!isset($this->abstractDefinitions[$extends])) {
                     throw new ConfigException(
                         sprintf(
