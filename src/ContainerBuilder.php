@@ -268,6 +268,7 @@ class ContainerBuilder {
         $aliases = array_keys($this->configFiles);
         $this->referenceResolver->setRegisteredAliases($aliases);
 
+        $configs = [];
         foreach ($this->configFiles as $alias => $file) {
             if (!is_string($alias)) {
                 // empty alias for numeric keys
@@ -278,7 +279,12 @@ class ContainerBuilder {
             $config = $this->processImports($config, dirname($file));
             $this->processParameters($config, $container, $alias);
             $this->processServices($config, $container, $alias);
-            $this->processExtensions($config, $container, $alias);
+            $configs[] = ["config" => $config, "alias" => $alias];
+        }
+
+        // process service extensions, now that all the services have been defined
+        foreach ($configs as $aliasedConfig) {
+            $this->processExtensions($aliasedConfig["config"], $container, $aliasedConfig["alias"]);
         }
 
         $this->processEnvironment($container);
@@ -532,7 +538,7 @@ class ContainerBuilder {
                 throw new ReferenceException("Error resolving class for '$key'. " . $e->getMessage());
             }
 
-            if (!class_exists($class)) {
+            if (!class_exists($class) && !interface_exists($class)) {
                 throw new ConfigException(sprintf("The service class '%s' does not exist", $class));
             }
 
