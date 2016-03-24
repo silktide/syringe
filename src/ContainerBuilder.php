@@ -617,7 +617,13 @@ class ContainerBuilder {
                 if (!is_array($definition["tags"])) {
                     throw new ConfigException(sprintf("Error for service '%s': the tags definition was not in the expected array format", $key));
                 }
-                foreach ($definition["tags"] as $tag) {
+                foreach ($definition["tags"] as $tag => $tagKey) {
+                    // tags are either defined as ' - "#tagName" ' or ' "#tagName": "tagKey" ', so
+                    // we have to detect the type of $tag and change the variables around if required
+                    if (is_numeric($tag)) {
+                        $tag = $tagKey;
+                        $tagKey = null;
+                    }
                     $tag = self::TAG_CHAR . $tag;
                     if (!isset($container[$tag])) {
                         $container[$tag] = function() {
@@ -626,7 +632,7 @@ class ContainerBuilder {
                     }
                     /** @var TagCollection $collection */
                     $collection = $container[$tag];
-                    $collection->addService($key);
+                    $collection->addService($key, $tagKey);
                 }
             }
 
