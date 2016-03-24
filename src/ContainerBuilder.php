@@ -98,6 +98,9 @@ class ContainerBuilder {
      */
     protected $parameterNames = [];
 
+    /**
+     * @var array
+     */
     protected $serviceAliases = [];
 
     /**
@@ -289,6 +292,13 @@ class ContainerBuilder {
 
         $this->processEnvironment($container);
         $this->applyApplicationRootDirectory($container);
+
+        // add the service locator to the container
+        if (!$container->offsetExists("serviceLocator")) {
+            $container["silktide_syringe.serviceLocator"] = function () use ($container) {
+                return new ServiceLocator($container);
+            };
+        }
     }
 
     /**
