@@ -515,8 +515,11 @@ class ContainerBuilder {
             if (!$this->isAssocArray($definition)) {
                 throw new ConfigException("A service definition must be an associative array");
             }
+            
+            $maxIterations = 20;
+            $currentIterations = 0;
             // check if this definition extends an abstract one
-            if (!empty($definition["extends"])) {
+            while (!empty($definition["extends"]) && $currentIterations < $maxIterations) {
                 $extends = self::SERVICE_CHAR . $this->referenceResolver->aliasThisKey(ltrim($definition["extends"], self::SERVICE_CHAR), $alias);
                 if (!isset($this->abstractDefinitions[$extends])) {
                     throw new ConfigException(
@@ -533,8 +536,10 @@ class ContainerBuilder {
                 if (!empty($this->abstractDefinitions[$extends]["calls"])) {
                     $calls = array_merge($calls, $this->abstractDefinitions[$extends]["calls"]);
                 }
+                unset($definition["extends"]);
                 $definition = array_replace_recursive($this->abstractDefinitions[$extends], $definition);
                 $definition["calls"] = $calls;
+                $currentIterations++;
             }
 
             // get class
