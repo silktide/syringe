@@ -6,7 +6,18 @@ use Silktide\Syringe\Exception\LoaderException;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Parser;
 
-class YamlLoader implements LoaderInterface {
+class YamlLoader implements LoaderInterface
+{
+    protected $hasYamlExtension;
+    protected $parser = false;
+
+    public function __construct()
+    {
+        $this->hasYamlExtension = function_exists("yaml_parse");
+        if (!$this->hasYamlExtension) {
+            $this->parser = new Parser();
+        }
+    }
 
     /**
      * {@inheritDoc}
@@ -30,12 +41,24 @@ class YamlLoader implements LoaderInterface {
      */
     public function loadFile($file)
     {
-        $parser = new Parser();
+        if (!file_exists($file)) {
+            throw new LoaderException(sprintf("Requested YAML file '%s' doesn't exist", $file));
+        }
+
+        $contents = file_get_contents($file);
+
+        if ($this->hasYamlExtension) {
+            $data = yaml_parse($contents);
+            if (!is_array($data)) {
+                throw new LoaderException("Requested YAML file '%' does not parse to an array", $file);
+            }
+            return $data;
+        }
+
         try {
-            $data = $parser->parse(file_get_contents($file));
+            return $this->parser->parse($contents);
         } catch (ParseException $e) {
             throw new LoaderException(sprintf("Could not load the YAML file '%s': %s", $file, $e->getMessage()));
         }
-        return $data;
     }
 }
