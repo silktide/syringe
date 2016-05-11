@@ -8,13 +8,17 @@ use Symfony\Component\Yaml\Parser;
 
 class YamlLoader implements LoaderInterface
 {
-    protected $hasYamlExtension;
+    protected $useSymfony = false;
     protected $parser = false;
 
-    public function __construct()
+    /**
+     * YamlLoader constructor.
+     * @param bool $forceSymfony
+     */
+    public function __construct($forceSymfony = false)
     {
-        $this->hasYamlExtension = function_exists("yaml_parse");
-        if (!$this->hasYamlExtension) {
+        if ($forceSymfony || !function_exists("yaml_parse")) {
+            $this->useSymfony = true;
             $this->parser = new Parser();
         }
     }
@@ -47,18 +51,19 @@ class YamlLoader implements LoaderInterface
 
         $contents = file_get_contents($file);
 
-        if ($this->hasYamlExtension) {
-            $data = yaml_parse($contents);
-            if (!is_array($data)) {
-                throw new LoaderException("Requested YAML file '%' does not parse to an array", $file);
+        if ($this->useSymfony) {
+            try {
+                return $this->parser->parse($contents);
+            } catch (ParseException $e) {
+                throw new LoaderException(sprintf("Could not load the YAML file '%s': %s", $file, $e->getMessage()));
             }
-            return $data;
         }
 
-        try {
-            return $this->parser->parse($contents);
-        } catch (ParseException $e) {
-            throw new LoaderException(sprintf("Could not load the YAML file '%s': %s", $file, $e->getMessage()));
+        $data = yaml_parse($contents);
+        if (!is_array($data)) {
+            throw new LoaderException("Requested YAML file '%' does not parse to an array", $file);
         }
+        
+        return $data;
     }
 }
