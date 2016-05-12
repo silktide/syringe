@@ -9,7 +9,6 @@ use Symfony\Component\Yaml\Parser;
 class YamlLoader implements LoaderInterface
 {
     protected $useSymfony = false;
-    protected $parser = false;
 
     /**
      * YamlLoader constructor.
@@ -19,7 +18,6 @@ class YamlLoader implements LoaderInterface
     {
         if ($forceSymfony || !function_exists("yaml_parse")) {
             $this->useSymfony = true;
-            $this->parser = new Parser();
         }
     }
 
@@ -53,7 +51,10 @@ class YamlLoader implements LoaderInterface
 
         if ($this->useSymfony) {
             try {
-                return $this->parser->parse($contents);
+                // Apparently parser keeps references to the things it parses? As such, we want to create a new parser
+                // each time (uch)
+                $parser = new Parser();
+                return $parser->parse($contents);
             } catch (ParseException $e) {
                 throw new LoaderException(sprintf("Could not load the YAML file '%s': %s", $file, $e->getMessage()));
             }
@@ -63,7 +64,7 @@ class YamlLoader implements LoaderInterface
         if (!is_array($data)) {
             throw new LoaderException("Requested YAML file '%' does not parse to an array", $file);
         }
-        
+
         return $data;
     }
 }
