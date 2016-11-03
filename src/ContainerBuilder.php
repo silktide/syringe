@@ -637,7 +637,7 @@ class ContainerBuilder {
                     }
                     /** @var TagCollection $collection */
                     $collection = $container[$tag];
-                    $collection->addService($key, $tagKey);
+                    $collection->addService($key, $this->referenceResolver->resolveParameter($tagKey, $container, $alias));
                 }
             }
 
