@@ -27,7 +27,7 @@ class ContainerBuilder {
 
     /**
      * The character that identifies a reference to a constant
-     * e.g. "^MyCompany\\MyClass::MY_CONSTANT" or "^STDOUT"
+     * e.g. "^MyCompany\\MyClass::MY_CONSTANT^" or "^STDOUT^"
      */
     const CONSTANT_CHAR = "^";
 
