@@ -1,0 +1,14 @@
+{
+  "services": {
+    "privateService": {
+      "class": "Silktide\\Syringe\\Test\\Service\\DudService",
+      "private": true
+    },
+    "usesPrivateService": {
+      "class": "Silktide\\Syringe\\Test\\Service\\DudConsumer",
+      "arguments": [
+        "@privateService"
+      ]
+    }
+  }
+}
