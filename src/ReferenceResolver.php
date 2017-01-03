@@ -15,6 +15,8 @@ class ReferenceResolver implements ReferenceResolverInterface
     protected $replacedParams = [];
 
     protected $registeredAliases = [];
+    
+    protected $privateServices = [];
 
     /**
      * {@inheritDoc}
@@ -23,6 +25,14 @@ class ReferenceResolver implements ReferenceResolverInterface
     {
         // flip so we can use isset() later
         $this->registeredAliases = array_flip($aliases);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function registerPrivateService($hashedName, $actualName)
+    {
+        $this->privateServices[$actualName] = $hashedName;
     }
 
     /**
@@ -39,10 +49,27 @@ class ReferenceResolver implements ReferenceResolverInterface
             $name = $this->aliasThisKey($originalName, $alias);
             // check if the service exists
             if (!$container->offsetExists($name)) {
+                // check the un-aliased name
                 $name = $originalName;
 
                 if (!$container->offsetExists($name)) {
-                    throw new ReferenceException(sprintf("Tried to inject the service '%s', but it doesn't exist", $name));
+                    // check for private services
+                    
+                    $privateName = $originalName;
+                    // alias the name if it wasn't already
+                    if (strpos($originalName, $alias) === false) {
+                        $privateName = $this->aliasThisKey($privateName, $alias);
+                    }
+                    
+                    if (
+                        empty($this->privateServices[$privateName]) || 
+                        !$container->offsetExists($this->privateServices[$privateName])
+                    ) {
+                        // no private service either, or the private service key doesn't exist in the container (WTF?!)
+                        throw new ReferenceException(sprintf("Tried to inject the service '%s', but it doesn't exist", $name));
+                    }
+                    
+                    $name = $this->privateServices[$privateName];
                 }
 
             }
