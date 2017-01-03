@@ -2,14 +2,17 @@
 
 include_once(__DIR__ . "/../vendor/autoload.php");
 
-$resolver = new \Silktide\Syringe\ReferenceResolver();
-$builder = new \Silktide\Syringe\ContainerBuilder($resolver, [__DIR__]);
+use Silktide\Syringe\Syringe;
 
-$builder->addLoader(new \Silktide\Syringe\Loader\JsonLoader());
-$builder->addConfigFile("service.json");
+$configFiles = [
+    "service.json",
+    "private_test" => "aliased.json"
+];
 $builder->addConfigFile("aliased.json", "private_test");
 
-$container = $builder->createContainer();
+Syringe::init(__DIR__, $configFiles);
+
+$container = Syringe::createContainer();
 
 $collection = $container["tagCollection"];
 
