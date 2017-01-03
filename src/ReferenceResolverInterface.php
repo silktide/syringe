@@ -56,4 +56,13 @@ interface ReferenceResolverInterface {
      */
     public function keyIsAliased($key);
 
+    /**
+     * Obfuscate a service name to make it private, while keeping a record to allow access to other services within
+     * the same namespace alias
+     *
+     * @param string $hashedName - the unique obfuscated service name
+     * @param string $actualName - the fully aliased service name
+     */
+    public function registerPrivateService($hashedName, $actualName);
+
 } 

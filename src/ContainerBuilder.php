@@ -607,7 +607,15 @@ class ContainerBuilder {
                 // don't alias the service here, we'll do that later when we're about to use it
                 $factory["service"] = $definition["factoryService"];
             }
-
+            
+            if (!empty($definition["private"])) {
+                // if a service is private, create a random key for it and save the reference against the actual service key 
+                $hashedName = md5($key . microtime(true));
+                
+                $this->referenceResolver->registerPrivateService($hashedName, $key);
+                $key = $hashedName;
+            }
+            
             // arguments
             $arguments = !empty($definition["arguments"])? $definition["arguments"]: [];
 
