@@ -13,10 +13,11 @@ use Silktide\Syringe\Loader\YamlLoader;
 class Syringe
 {
 
-    /**
-     * @var ContainerBuilder
-     */
-    protected static $builder;
+    protected static $loaders;
+    
+    protected static $appDir;
+    
+    protected static $configFiles;
 
     /**
      * Initialise the DI container builder
@@ -26,24 +27,13 @@ class Syringe
      */
     public static function init($appDir, array $configFiles)
     {
-        $resolver = new ReferenceResolver();
-        $loaders = [
+        self::$loaders = [
             new JsonLoader(),
             new YamlLoader()
         ];
-
-        $configPaths = [
-            $appDir
-        ];
-
-        self::$builder = new ContainerBuilder($resolver, $configPaths);
-
-        foreach ($loaders as $loader) {
-            self::$builder->addLoader($loader);
-        }
-        self::$builder->setApplicationRootDirectory($appDir);
         
-        self::$builder->addConfigFiles($configFiles);
+        self::$appDir = $appDir;
+        self::$configFiles = $configFiles;
     }
 
     /**
@@ -53,7 +43,18 @@ class Syringe
      */
     public static function createContainer()
     {
-        return self::$builder->createContainer();
+        $resolver = new ReferenceResolver();
+        
+        $builder = new ContainerBuilder($resolver, [self::$appDir]);
+
+        foreach (self::$loaders as $loader) {
+            $builder->addLoader($loader);
+        }
+        $builder->setApplicationRootDirectory(self::$appDir);
+
+        $builder->addConfigFiles(self::$configFiles);
+
+        return $builder->createContainer();
     }
 
 }
