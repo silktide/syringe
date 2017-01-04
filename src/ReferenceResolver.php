@@ -57,7 +57,7 @@ class ReferenceResolver implements ReferenceResolverInterface
                     
                     $privateName = $originalName;
                     // alias the name if it wasn't already
-                    if (strpos($originalName, $alias) === false) {
+                    if (!empty($alias) && strpos($originalName, $alias) === false) {
                         $privateName = $this->aliasThisKey($privateName, $alias);
                     }
                     
