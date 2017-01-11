@@ -131,7 +131,7 @@ services:
             - "^MyModule\\MyService::CLASS_CONSTANT^"
 ```
 
-Where class constants are used, you are required to provide the fully qualified class name.
+Where class constants are used, you are required to provide the fully qualified class name. As this has to be enclosed inside a string, all forward slashes must be escaped, as in the example.
 
 ## Tags
 
@@ -169,9 +169,36 @@ When the tag is resolved, the collection is passed through as a simple numeric a
 
 ## Environment Variables
 
+## Config Aliases and Namespacing
+
+When dealing with a large object graph, conflicting service names can become an issue. To avoid this, Syringe allows you to set an "alias" or namespace for a config file. Within the file, services can be referenced as normal, but files which use different aliases or no alias need to prefix the service name with the alias.
+This allows you to compartmentalise your DI config for better organisation and to promote modular coding.
+
+For example, the two config files, `foo.yml` and `bar.yml` can be given aliases when setting up the config files to create a Container from:
+
+```php
+$configFiles = [
+  "foo_alias" => "foo.yml",
+  "bar_alias" => "bar.yml"
+];
+```
+
+`foo.yml` could defined a service, `fooOne`, which injected another service in the same file, `fooTwo`, as normal.
+However, if a service in `bar.yml` wanted to inject `fooTwo`, it would have to use it's full service reference `@foo_alias.fooTwo`. Likewise if `fooOne` wanted to inject `barOne` from `bar.yml` it would have to use `@bar_alias.barOne` as the service reference.
+
 ## Private Services
 
-## Config Aliases and Namespacing
+For the vast majority of cases, there is no issue with services being accessed from outside of the current module. In fact this is advantageous as it promotes modular design, reuse of services and code discovery. However, there can be times when data security requires that a service be locked down and to not be available to anything outside of the control of the current module.
+Services can be marked as private by adding the `private` key to their definition:
+
+```yml
+services:
+    myService:
+        ...
+        private: true
+```
+
+Private services will only be available to other services that are defined with the same config alias, usually within the same module.
 
 ## Extensions
 
