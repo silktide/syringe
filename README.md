@@ -8,7 +8,7 @@ Syringe allows a [Pimple](https://github.com/silexphp/pimple) DI container to be
 
 ``composer require silktide/syringe``
 
-# Basic Usage
+# Getting Started
 
 The simplest method to create and set up a new Container is to use the `Silktide\Syringe\Syringe` class. It requires the path to the application directory and a list of filepaths that are relative to that directory
 
@@ -17,7 +17,7 @@ use Silktide\Syringe\Syringe;
 
 $appDir = __DIR__;
 $configFiles = [
-    "config/syringe.yml"
+    "config/syringe.yml" // add paths to your configuration files here
 ];
 
 Syringe::init($appDir, $configFiles);
@@ -26,6 +26,8 @@ $container = Syringe::createContainer();
 # Configuration Files
 
 By default, Syringe allows config files to be in JSON or YAML format. Each file can define parameters, services and tags to inject into the container, and these entities can be referenced in other areas of configuration.
+
+
 
 ## Parameters
 
@@ -44,12 +46,6 @@ parameters:
     firstName: "Joe"
     lastName: "Bloggs"
     fullName: "%firstName% %lastName%"
-    
-services:
-    userService:
-        class: MyModule\UserService
-        arguments:
-            - "%fullName%" # inserts "Joe Bloggs" as the first constructor argument of the UserService
 ```
 
 Parameters can have any scalar or array value
@@ -65,11 +61,146 @@ services:
         class: MyModule\MyService
         arguments:
             - "first constructor argument"
-            - "%myParam%"
-            - "@anotherService"
+            - 12345
+            - false
 ```
 
-Services are referenced by prefixing their name with the `@` symbol
+### Service injection
+
+Services can have parameters or other services injected into them as method arguments, by referencing a service name prefixed with the `@` character. This is done in one of two ways:
+
+#### Constructor injection
+
+Injection can be done when a service is instantiated, by setting references in `arguments` key of a service definition. This is typically done for dependencies which are required.
+
+```yml
+services:
+    injectable:
+        class: MyModule\MyDependency
+
+    myService:
+        class: MyModule\MyService
+        arguments:
+            - "@injectable"
+            - "%myParam%"
+```
+
+#### Setter injection
+
+Services can also be injected by calling a method after the service has been instantiated, passing the dependant service in as an argument. This form is useful for optional dependencies.
+
+```yml
+services:
+    injectable:
+        class: MyModule\MyDependency
+
+    myService:
+        class: MyModule\MyService
+        calls:
+            -
+                method: "setInjectable"
+                arguments:
+                    - "@injectable"
+```
+
+The `calls` key can be used to run any method on a service, not necessarily one to inject a dependency. They are executed in the order they are defined.
+
+```yml
+services:
+    myService:
+        class: MyModule\MyService
+        calls:
+            - method: "warmCache"
+            - method: "setTimeout"
+              arguments: ["%myTimeout%"]
+            - method: "setLogger"
+              arguments: ["@myLogger"]
+```
+## Constants
+
+Quite often, a value set in a PHP constant is required to be injected into a services. Hard coding these value directly into DI config is brittle and requires maintenance to keep in sync, which should be avoided where possible. 
+Syringe solves this problem by allowing PHP constants to be referenced directly in config, by surrounding the constant name with `^` characters:
+
+```yml
+services:
+    myService:
+        class: MyModule\MyService
+        arguments:
+            - "^PHP_INT_MAX^"
+            - "^MY_CUSTOM_CONSTANT^"
+            - "^MyModule\\MyService::CLASS_CONSTANT^"
+```
+
+Where class constants are used, you are required to provide the fully qualified class name.
+
+## Tags
+
+In some cases, you may want to inject all the services of a given type as a method argument. This can be done manually, by building a list of service references in config, but maintaining such a list is cumbersome and tiem consuming.
+The solution is tags; allowing you to tag a service as being part of a collection and then to inject the whole collection of services in one reference.
+A tag is referenced by prefixing it's name with the `#` character.
+
+```yml
+services:
+    logHandler1:
+        ...
+        tags:
+            - "logHandlers"
+            
+    logHandler2:
+        ...
+        tags:
+            - "logHandlers"
+            
+    loggerService:
+        ...
+        arguments:
+            - "#logHandlers"
+```
+
+When the tag is resolved, the collection is passed through as a simple numeric array. The parent service will have no knowledge that a tag was used to generate this list.
+
+## Factories
+
+## Service Aliases
+
+## Abstract Services
+
+## Imports
+
+## Environment Variables
+
+## Private Services
+
+## Config Aliases and Namespacing
+
+## Extensions
+
+## Reference characters
+
+In order to identify references, the following characters are used:
+
+* `@` - Services
+* `%` - Parameters
+* `#` - Tags
+* `^` - Constants
+
+## Conventions
+
+Syringe does not enforce naming or style conventions, with one exception. A service's name can be any you like, as long as it does not start with one of the reference characters, but a config alias is always seperated from a service name with a `.`, e.g. `myAlias.serviceName`. For this reason it can be useful to use `.` as a separator in your own service names, to "namespace" related services and parameters:
+
+```yml
+parameters:
+    database.host: "..."
+    database.username: "..."
+    database.password: "..."
+    
+services:
+    database.client:
+        ...
+```
+
+# Advanced Usage
+
 
 # Credits
 
