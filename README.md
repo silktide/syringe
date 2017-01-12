@@ -348,7 +348,170 @@ services:
 
 # Advanced Usage
 
-@TODO
+## The ContainerBuilder
+
+The `ContainerBuilder` class is the main component of Syringe. It has several configuration options that allow you to customise the containers it builds.
+
+### Base paths for config files
+
+In order to use configuration in a particular file, it's filepath must be passed to the `ContainerBuilder`, which will use the loading system to convert a file into a PHP array.
+Syringe uses absolute paths when loading files, but this is obviously not ideal when you're passing config filepaths to the `ContainerBuilder`. 
+In order to get around this, the `ContainerBuilder` allows you to set a path or collection of paths to use as a base, so you can use relative filepaths when setting it up.
+For example, for a config file with absolute path of `/var/www/app/config/syringe.yml`, you could set a base path of `/var/www/app` and use `config/syringe.yml` as the relative filepath
+
+```php
+$basePath = "/var/www/app";
+$resolver = new Silktide\Syringe\ReferenceResolver();
+
+$builder = new Silktide\Syringe\ContainerBuilder($resolver, [$basePath]);
+$builder->addConfigfile("config/syringe.yml");
+...
+```
+
+If you use several base paths, Syringe will look for a config file in each base path in turn, so the order is important.
+
+```php
+$basePaths = [
+    "my-dir/config",    // both these paths contain a file called "foo.yml"
+    "my-dir/app"
+];
+$resolver = new Silktide\Syringe\ReferenceResolver();
+
+$builder = new Silktide\Syringe\ContainerBuilder($resolver, $basePaths);
+$builder->addConfigfile("foo.yml");     // will load my-dir/config/foo.yml, as that is the first base path in the list
+```
+
+### Application root directory
+
+If you have services that deal with files, it can be very useful to have the base directory of the application as a parameter in DI config, so you can be sure any relative paths you use are correct.
+The `ContainerBuilder` allows you to set the base directory and the parameter name at runtime:
+
+```php
+$builder->setApplicationRootDirectory("my/application/directory", "myParameterName");
+```
+
+If no key is passed, the default paramater name is `app.dir`
+
+### Container class
+
+Some projects that use Pimple, such a [Silex](http://silex.sensiolabs.org/), extend the `Container` class to add functionality to their API.
+Syringe can create custom containers in this way by allowing you to set the container class it instantiates:
+
+```
+$builder->setContainerClass(Silex\Application::class);
+$app = $builder->createContainer(); // returns a new Silex Application
+```
+
+### Loaders
+
+Syringe can support any data format that can be translated into a nested PHP array. Each config file is processed by the loader system, which is comprised of a series of `Loader` objects, each handling a single data format, that take a file's contents and decode it into an array of configuration.
+
+By default the `ContainerBuilder` has no loaders, so you need to add at least one before a container can be built:
+
+```php
+$builder->addLoader(new Silktide\Syringe\Loader\YamlLoader());
+```
+
+#### Custom loaders
+
+By default Syringe supports YAML and JSON data formats for the configurations files, but it is possible to use any format that can be translated into a nested PHP array.
+The translation is done by a `Loader`; a class which takes a filepath, reads the file and decodes the data. 
+
+To create a `Loader` for your chosen data format, the class needs to implement the `LoaderInterface` and state what it's name is and what file extensions it supports.
+For example, a hypothetical XML `Loader` would look something like this:
+
+```php
+use Silktide\Syringe\Loader\LoaderInterface;
+
+class XmlLoader implements LoaderInterface
+{
+    public function getName()
+    {
+        return "XML Loader";
+    }
+    
+    public function supports($file)
+    {
+        return pathinfo($file, PATHINFO_EXTENSION) == "xml";
+    }
+    
+    public function loadFile($file)
+    {
+        // load and decode the file, returning the configuration array
+    }
+}
+```
+
+Once created, such a loader can be used by adding it to the `ContainerBuilder` in the normal way.
+
+### Populating a Container
+
+In addition to creating a new container, the `ContainerBuilder` can also populate an existing container that has been created elsewhere, with the `populateContainer` method:
+
+```php
+$container = new Pimple\Container();
+$builder->populateContainer($contianer);
+```
+
+### Method reference
+
+The `ContainerBuilder` class has the following methods available:
+
+#### Constructor
+
+* `__construct(Silktide\Syringe\ReferenceResolver $resolver, array $configPaths = [])`
+  
+  Constructs a new `ContainerBuilder` instance, with each $configPath set using the `addConfigPath` method
+
+#### Container
+
+* `createContainer()`
+
+  Create a brand new container populated with all services defined in the configuration files that have been loaded into the `ContainerBuilder`
+* `populateContainer(Pimple\Container $container)`
+
+  Populate an existing container with services as per `createContainer`
+* `setContainerClass($className)`
+
+  Sets the class which will be instantiated when using `createContainer`
+
+#### Config Files
+
+* `addConfigFile($file, $alias = "")`
+
+  Adds a new file path to load configuration from, optionally with an alias to prefix it's keys with
+* `addConfigFiles(array $files)`
+
+  Adds several config files in one go. Elements with numeric keys are added without an alias, otherwise the key is used as the alias for that file:
+```php
+  $files = [
+      "file1.yml",
+      "alias_two" => "file2.yml",
+      "file3.yml",
+      "alias_four" => "file4.yml"
+  ]
+```
+* `addConfigPath($path)`
+
+  Register a path to use as a base for relative config filepaths
+  
+#### Loaders
+
+* `addLoader(Silktide\Syringe\Loader\LoaderInterface $loader)`
+
+  Registers a loader to add support for a specific data format
+* `removeLoader($name)`
+
+  Remove a loader based on it's name
+* `removeLoaderByFile($file)`
+
+  Remove any loader that supports this file
+  
+#### Misc
+
+* `setAppllcationRootDirectory($path, $key = "")`
+
+  Sets the directory to use as the root for this application, useful when processing relative file paths. The parameter name will be the $key, or `app.dir` if $key is empty
 
 # Credits
 
