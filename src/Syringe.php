@@ -3,6 +3,7 @@
 namespace Silktide\Syringe;
 
 use Silktide\Syringe\Loader\JsonLoader;
+use Silktide\Syringe\Loader\PhpLoader;
 use Silktide\Syringe\Loader\YamlLoader;
 
 /**
@@ -29,7 +30,8 @@ class Syringe
     {
         self::$loaders = [
             new JsonLoader(),
-            new YamlLoader()
+            new YamlLoader(),
+            new PhpLoader()
         ];
         
         self::$appDir = $appDir;
