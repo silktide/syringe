@@ -1,13 +1,13 @@
 {
   "services": {
     "tagTest": {
-      "class": "Silktide\\Syringe\\Test\\Service\\DudService",
+      "class": "Silktide\\Syringe\\Tests\\Service\\DudService",
       "tags": [
         "duds"
       ]
     },
     "tagCollection": {
-      "class": "Silktide\\Syringe\\Test\\Service\\CollectionService",
+      "class": "Silktide\\Syringe\\Tests\\Service\\CollectionService",
       "arguments": [
         "#duds"
       ]
