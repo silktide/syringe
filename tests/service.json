@@ -14,6 +14,13 @@
     },
     "duds": {
       "aliasOf": "@tagCollection"
+    },
+    "privacyIgnorer": {
+      "class": "Silktide\\Syringe\\Tests\\Service\\DudConsumer",
+      "arguments": [
+        "@private_test.privateService"
+      ]
     }
+
   }
 }

@@ -39,7 +39,13 @@ if (!$container["private_test.publicAlias"] instanceof \Silktide\Syringe\Tests\S
 
 // check private services are hidden
 if ($container->offsetExists("private_test.privateService")) {
+    throw new \Exception("Services marked as private should not be accessible from the container directly");
+}
+try {
+    $service = $container["privacyIgnorer"];
     throw new \Exception("Services marked as private should not be accessible from outside of their alias");
+} catch (\Silktide\Syringe\Exception\ReferenceException $e) {
+    // expected behaviour
 }
 
 // check private services can be used within the same namespace

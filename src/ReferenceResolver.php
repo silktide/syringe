@@ -53,15 +53,17 @@ class ReferenceResolver implements ReferenceResolverInterface
                 $name = $originalName;
 
                 if (!$container->offsetExists($name)) {
-                    // check for private services
-                    
+                    // check for private services if we have an alias to work with
+
                     $privateName = $originalName;
                     // alias the name if it wasn't already
                     if (!empty($alias) && strpos($originalName, $alias) === false) {
                         $privateName = $this->aliasThisKey($privateName, $alias);
                     }
-                    
+
+                    // accessing private services from an unaliased context should always fail
                     if (
+                        empty($alias) ||
                         empty($this->privateServices[$privateName]) || 
                         !$container->offsetExists($this->privateServices[$privateName])
                     ) {
