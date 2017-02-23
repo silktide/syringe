@@ -5,4 +5,5 @@ before_script:
   - travis_retry composer self-update && composer --version
   - composer install --prefer-source  --optimize-autoloader
 script:
-  echo "Tests to come >_> <_<"
+  - vendor/bin/phpunit
+  - vendor/bin/phpunit tests/integration-tests
