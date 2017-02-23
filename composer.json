@@ -15,7 +15,7 @@
     "psr-4": {
       "Silktide\\Syringe\\": "src",
       "Silktide\\Syringe\\Tests\\": "tests/unit",
-      "Silktide\\Syringe\\IntegrationTests\\": "tests/integration-tests"
+      "Silktide\\Syringe\\IntegrationTests\\": "tests/integration"
     }
   },
   "suggest": {
