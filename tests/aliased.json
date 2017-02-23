@@ -7,8 +7,14 @@
     "usesPrivateService": {
       "class": "Silktide\\Syringe\\Tests\\Service\\DudConsumer",
       "arguments": [
-        "@privateService"
+        "@privateAlias"
       ]
+    },
+    "privateAlias": {
+      "aliasOf": "@privateService"
+    },
+    "publicAlias": {
+      "aliasOf": "@usesPrivateService"
     }
   }
 }

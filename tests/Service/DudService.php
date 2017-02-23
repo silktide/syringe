@@ -1,6 +1,6 @@
 <?php
 
-namespace Silktide\Syringe\Test\Service;
+namespace Silktide\Syringe\Tests\Service;
 
 class DudService 
 {
