@@ -1,13 +1,13 @@
 {
   "services": {
     "tagTest": {
-      "class": "Silktide\\Syringe\\Tests\\Service\\DudService",
+      "class": "Silktide\\Syringe\\IntegrationTests\\Service\\DudService",
       "tags": [
         "duds"
       ]
     },
     "tagCollection": {
-      "class": "Silktide\\Syringe\\Tests\\Service\\CollectionService",
+      "class": "Silktide\\Syringe\\IntegrationTests\\Service\\CollectionService",
       "arguments": [
         "#duds"
       ]
@@ -16,7 +16,7 @@
       "aliasOf": "@tagCollection"
     },
     "privacyIgnorer": {
-      "class": "Silktide\\Syringe\\Tests\\Service\\DudConsumer",
+      "class": "Silktide\\Syringe\\IntegrationTests\\Service\\DudConsumer",
       "arguments": [
         "@private_test.privateService"
       ]

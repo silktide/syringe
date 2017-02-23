@@ -1,11 +1,11 @@
 {
   "services": {
     "privateService": {
-      "class": "Silktide\\Syringe\\Tests\\Service\\DudService",
+      "class": "Silktide\\Syringe\\IntegrationTests\\Service\\DudService",
       "private": true
     },
     "usesPrivateService": {
-      "class": "Silktide\\Syringe\\Tests\\Service\\DudConsumer",
+      "class": "Silktide\\Syringe\\IntegrationTests\\Service\\DudConsumer",
       "arguments": [
         "@privateAlias"
       ]
