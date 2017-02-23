@@ -445,14 +445,15 @@ class ContainerBuilder {
             if ($container->offsetExists($aliasedKey) && $alias != "") {
                 continue;
             }
+
             if (!$this->referenceResolver->keyIsAliased($key)) {
                 $key = $aliasedKey;
             }
 
             $resolver = $this->referenceResolver;
-            $container[$key] = function () use ($value, $resolver, $container, $key) {
+            $container[$key] = function () use ($value, $resolver, $container, $key, $alias) {
                 try {
-                    return $resolver->resolveParameter($value, $container);
+                    return $resolver->resolveParameter($value, $container, $alias);
                 } catch (ReferenceException $e) {
                     throw new ReferenceException("Error with key '$key'. " . $e->getMessage());
                 }
