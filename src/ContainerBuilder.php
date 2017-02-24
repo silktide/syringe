@@ -492,7 +492,9 @@ class ContainerBuilder {
         // process services
         foreach ($config["services"] as $key => $definition) {
             // check if this is an alias of another service
-            $key = $this->referenceResolver->aliasThisKey($key, $alias);
+            if (!$this->referenceResolver->keyIsAliased($key)) {
+                $key = $this->referenceResolver->aliasThisKey($key, $alias);
+            }
 
             if (!empty($definition["aliasOf"])) {
                 // override any existing definitions for this key
