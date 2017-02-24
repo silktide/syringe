@@ -321,7 +321,11 @@ class ContainerBuilder {
         if (!is_array($config)) {
             throw new LoaderException(sprintf("The data from '%s' is invalid", $file));
         }
-        return $config;
+
+        // If any of the values are null, then we don't want to treat them as valid and try to use them
+        return array_filter($config, function($value) {
+            return !is_null($value);
+        });
     }
 
     /**
