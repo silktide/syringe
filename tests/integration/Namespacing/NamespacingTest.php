@@ -23,5 +23,6 @@ class NamespacingTest extends \PHPUnit_Framework_TestCase
         $container = $builder->createContainer();
         $this->assertEquals("42", $container["my_api_key"]);
         $this->assertEquals("42", $container["dependency.key_using_api_key"]);
+        $this->assertEquals("42", $container["dependency.key_using_key_using_api_key"]);
     }
 }

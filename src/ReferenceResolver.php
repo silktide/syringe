@@ -121,9 +121,9 @@ class ReferenceResolver implements ReferenceResolverInterface
             if (!$container->offsetExists($name)) {
                 throw new ReferenceException(sprintf("Tried to inject the parameter '%s' in an argument list, but it doesn't exist", $name));
             }
-            if (strlen($arg) > strlen($name) + 2) {
+            if (strlen($arg) > strlen($param) + 2) {
                 // string replacement
-                $arg = str_replace($char . $name . $char, $container[$name], $arg);
+                $arg = str_replace($char . $param . $char, $container[$name], $arg);
 
             } else {
                 // value replacement
