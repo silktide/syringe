@@ -191,14 +191,13 @@ class ContainerBuilder {
      * @param string|null $alias
      * @throws Exception\LoaderException
      */
-    public function addConfigFile($file, $alias = null) {
-
+    public function addConfigFile($file, $alias = null)
+    {
         $filePath = $this->findConfigFile($file);
-        if (!is_string($alias)) {
-            $this->configFiles[] = $filePath;
-        } else {
-            $this->configFiles[$alias] = $filePath;
-        }
+        
+        $alias = is_string($alias) ? $alias : "";
+
+        $this->configFiles[$alias][] = $filePath;
     }
 
     public function setApplicationRootDirectory($directory, $key = "")
@@ -272,17 +271,19 @@ class ContainerBuilder {
         $this->referenceResolver->setRegisteredAliases($aliases);
 
         $configs = [];
-        foreach ($this->configFiles as $alias => $file) {
+        foreach ($this->configFiles as $alias => $files) {
             if (!is_string($alias)) {
                 // empty alias for numeric keys
                 $alias = "";
             }
 
-            $config = $this->loadConfig($file);
-            $config = $this->processImports($config, dirname($file));
-            $this->processParameters($config, $container, $alias);
-            $this->processServices($config, $container, $alias);
-            $configs[] = ["config" => $config, "alias" => $alias];
+            foreach ($files as $file) {
+                $config = $this->loadConfig($file);
+                $config = $this->processImports($config, dirname($file));
+                $this->processParameters($config, $container, $alias);
+                $this->processServices($config, $container, $alias);
+                $configs[] = ["config" => $config, "alias" => $alias];
+            }
         }
 
         // process service extensions, now that all the services have been defined
@@ -321,7 +322,9 @@ class ContainerBuilder {
         if (!is_array($config)) {
             throw new LoaderException(sprintf("The data from '%s' is invalid", $file));
         }
-        return $config;
+
+        // If any of the values are null, then we don't want to treat them as valid and try to use them
+        return array_filter($config);
     }
 
     /**
