@@ -323,9 +323,7 @@ class ContainerBuilder {
         }
 
         // If any of the values are null, then we don't want to treat them as valid and try to use them
-        return array_filter($config, function($value) {
-            return !is_null($value);
-        });
+        return array_filter($config);
     }
 
     /**
