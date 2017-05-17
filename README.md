@@ -1,7 +1,3 @@
-# Syringe
-
-![](https://img.shields.io/badge/owner-danny smart-brightgreen.svg)
-
 Syringe allows a [Pimple](https://github.com/silexphp/pimple) DI container to be created and populated with services defined in configuration files, in the same fashion as Symfony's [DI module](https://github.com/symfony/dependency-injection).
 
 # Installation
@@ -23,11 +19,10 @@ $configFiles = [
 Syringe::init($appDir, $configFiles);
 $container = Syringe::createContainer();
 ```
+
 # Configuration Files
 
 By default, Syringe allows config files to be in JSON or YAML format. Each file can define parameters, services and tags to inject into the container, and these entities can be referenced in other areas of configuration.
-
-
 
 ## Parameters
 
@@ -39,7 +34,7 @@ parameters:
     myParam: "value"
 ```
 
-Once defined, a parameter can be referenced inside a string value by surrounding it's name with the `%` symbol and the parameters value will the be inserted when the the string value is resolved. This can be done in service arguments or in other parameters, like so:
+Once defined, a parameter can be referenced inside a string value by surrounding its name with the `%` symbol and the parameters value will the be inserted when the the string value is resolved. This can be done in service arguments or in other parameters, like so:
 
 ```yml
 parameters:
@@ -48,7 +43,7 @@ parameters:
     fullName: "%firstName% %lastName%"
 ```
 
-Parameters can have any scalar or array value
+Parameters can have any scalar or array value.
 
 ## Constants
 
@@ -133,9 +128,11 @@ services:
 
 ### Tags
 
-In some cases, you may want to inject all the services of a given type as a method argument. This can be done manually, by building a list of service references in config, but maintaining such a list is cumbersome and tiem consuming.
+In some cases, you may want to inject all the services of a given type as a method argument. This can be done manually, by building a list of service references in config, but maintaining such a list is cumbersome and time consuming.
+
 The solution is tags; allowing you to tag a service as being part of a collection and then to inject the whole collection of services in one reference.
-A tag is referenced by prefixing it's name with the `#` character.
+
+A tag is referenced by prefixing its name with the `#` character.
 
 ```yml
 services:
@@ -178,7 +175,7 @@ services:
         class: MyModule\MyServiceFactory
 ```
 
-If the factory methods require arguments, you can pass them through using the `arguments` key, in the same way you would for a normal service or a method call
+If the factory methods require arguments, you can pass them through using the `arguments` key, in the same way you would for a normal service or a method call.
 
 ### Service Aliases
 
@@ -260,7 +257,7 @@ services:
     ...
 ```
 
-If any imported files contain duplicated keys, the file that is further down the list wins. As the parent file is always processed last, it's services and parameters always take precedence over the imported config
+If any imported files contain duplicated keys, the file that is further down the list wins. As the parent file is always processed last, its services and parameters always take precedence over the imported config.
 
 ```yml
 # [foo.yml]
@@ -297,7 +294,7 @@ $configFiles = [
 ```
 
 `foo.yml` could defined a service, `fooOne`, which injected another service in the same file, `fooTwo`, as normal.
-However, if a service in `bar.yml` wanted to inject `fooTwo`, it would have to use it's full service reference `@foo_alias.fooTwo`. Likewise if `fooOne` wanted to inject `barOne` from `bar.yml` it would have to use `@bar_alias.barOne` as the service reference.
+However, if a service in `bar.yml` wanted to inject `fooTwo`, it would have to use its full service reference `@foo_alias.fooTwo`. Likewise if `fooOne` wanted to inject `barOne` from `bar.yml` it would have to use `@bar_alias.barOne` as the service reference.
 
 ## Extensions
 
@@ -354,10 +351,9 @@ The `ContainerBuilder` class is the main component of Syringe. It has several co
 
 ### Base paths for config files
 
-In order to use configuration in a particular file, it's filepath must be passed to the `ContainerBuilder`, which will use the loading system to convert a file into a PHP array.
-Syringe uses absolute paths when loading files, but this is obviously not ideal when you're passing config filepaths to the `ContainerBuilder`. 
-In order to get around this, the `ContainerBuilder` allows you to set a path or collection of paths to use as a base, so you can use relative filepaths when setting it up.
-For example, for a config file with absolute path of `/var/www/app/config/syringe.yml`, you could set a base path of `/var/www/app` and use `config/syringe.yml` as the relative filepath
+In order to use configuration in a particular file, its filepath must be passed to the `ContainerBuilder`, which will use the loading system to convert a file into a PHP array. Syringe uses absolute paths when loading files, but this is obviously not ideal when you're passing config filepaths to the `ContainerBuilder`. 
+
+In order to get around this, the `ContainerBuilder` allows you to set a path or collection of paths to use as a base, so you can use relative filepaths when setting it up. For example, for a config file with absolute path of `/var/www/app/config/syringe.yml`, you could set a base path of `/var/www/app` and use `config/syringe.yml` as the relative filepath.
 
 ```php
 $basePath = "/var/www/app";
@@ -390,14 +386,13 @@ The `ContainerBuilder` allows you to set the base directory and the parameter na
 $builder->setApplicationRootDirectory("my/application/directory", "myParameterName");
 ```
 
-If no key is passed, the default paramater name is `app.dir`
+If no key is passed, the default parameter name is `app.dir`.
 
 ### Container class
 
-Some projects that use Pimple, such a [Silex](http://silex.sensiolabs.org/), extend the `Container` class to add functionality to their API.
-Syringe can create custom containers in this way by allowing you to set the container class it instantiates:
+Some projects that use Pimple, such a [Silex](http://silex.sensiolabs.org/), extend the `Container` class to add functionality to their API. Syringe can create custom containers in this way by allowing you to set the container class it instantiates:
 
-```
+```php
 $builder->setContainerClass(Silex\Application::class);
 $app = $builder->createContainer(); // returns a new Silex Application
 ```
@@ -417,8 +412,7 @@ $builder->addLoader(new Silktide\Syringe\Loader\YamlLoader());
 By default Syringe supports YAML and JSON data formats for the configurations files, but it is possible to use any format that can be translated into a nested PHP array.
 The translation is done by a `Loader`; a class which takes a filepath, reads the file and decodes the data. 
 
-To create a `Loader` for your chosen data format, the class needs to implement the `LoaderInterface` and state what it's name is and what file extensions it supports.
-For example, a hypothetical XML `Loader` would look something like this:
+To create a `Loader` for your chosen data format, the class needs to implement the `LoaderInterface` and state what its name is and what file extensions it supports. For example, a hypothetical XML `Loader` would look something like this:
 
 ```php
 use Silktide\Syringe\Loader\LoaderInterface;
@@ -479,7 +473,7 @@ The `ContainerBuilder` class has the following methods available:
 
 * `addConfigFile($file, $alias = "")`
 
-  Adds a new file path to load configuration from, optionally with an alias to prefix it's keys with
+  Adds a new file path to load configuration from, optionally with an alias to prefix its keys with
 * `addConfigFiles(array $files)`
 
   Adds several config files in one go. Elements with numeric keys are added without an alias, otherwise the key is used as the alias for that file:
@@ -502,17 +496,17 @@ The `ContainerBuilder` class has the following methods available:
   Registers a loader to add support for a specific data format
 * `removeLoader($name)`
 
-  Remove a loader based on it's name
+  Remove a loader based on its name
 * `removeLoaderByFile($file)`
 
   Remove any loader that supports this file
   
 #### Misc
 
-* `setAppllcationRootDirectory($path, $key = "")`
+* `setApplicationRootDirectory($path, $key = "")`
 
   Sets the directory to use as the root for this application, useful when processing relative file paths. The parameter name will be the $key, or `app.dir` if $key is empty
 
 # Credits
 
-Written by Danny Smart 
+Written by Danny Smart (dannysmart@silktide.com).
