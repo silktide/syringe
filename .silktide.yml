@@ -3,4 +3,5 @@ app: syringe
 type: library
 source: open
 language: php
+protected: false
 ...
