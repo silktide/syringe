@@ -142,7 +142,7 @@ class ContainerBuilder {
         $this->containerClass = $containerClass;
     }
 
-    public function setValidationEnabled(bool $enabled = true)
+    public function setValidationEnabled($enabled = true)
     {
         $this->validate = $enabled;
     }
