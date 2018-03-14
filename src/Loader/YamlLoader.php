@@ -5,6 +5,7 @@ namespace Silktide\Syringe\Loader;
 use Silktide\Syringe\Exception\LoaderException;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Parser;
+use Symfony\Component\Yaml\Yaml;
 
 class YamlLoader implements LoaderInterface
 {
@@ -43,24 +44,18 @@ class YamlLoader implements LoaderInterface
      */
     public function loadFile($file)
     {
-        if (!file_exists($file)) {
-            throw new LoaderException("Requested YAML file '{$file}' doesn't exist");
-        }
-
-        $contents = file_get_contents($file);
-
         if ($this->useSymfony) {
             try {
-                // Apparently parser keeps references to the things it parses? As such, we want to create a new parser
-                // each time (uch)
-                $parser = new Parser();
-                return $parser->parse($contents);
+                if (!file_exists($file)) {
+                    throw new LoaderException("Requested YAML file '{$file}' doesn't exist");
+                }
+                return Yaml::parse(file_get_contents($file));
             } catch (ParseException $e) {
                 throw new LoaderException("Could not load the YAML file '{$file}': ".$e->getMessage());
             }
         }
 
-        $data = yaml_parse($contents);
+        $data = yaml_parse_file($file);
         if (!is_array($data)) {
             throw new LoaderException("Requested YAML file '{$file}' does not parse to an array");
         }

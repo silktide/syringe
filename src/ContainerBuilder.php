@@ -54,6 +54,17 @@ class ContainerBuilder {
     protected $containerClass = self::DEFAULT_CONTAINER_CLASS;
 
     /**
+     * It's useful to validate that your DI config is correct, but it does mean that for larger DI configs, it has to fire
+     * class_exists and method_exists for *huge* amounts of classes which in turn has to run the autoloader for every
+     * class
+     *
+     * It is useful to be able to disable this in some cases as it provides massive speed boosts
+     *
+     * @var bool
+     */
+    protected $validate = true;
+
+    /**
      * @var array
      */
     protected $loaders = [];
@@ -129,6 +140,11 @@ class ContainerBuilder {
         }
 
         $this->containerClass = $containerClass;
+    }
+
+    public function setValidationEnabled($enabled = true)
+    {
+        $this->validate = $enabled;
     }
 
     /**
@@ -559,9 +575,12 @@ class ContainerBuilder {
                 throw new ReferenceException("Error resolving class for '$key'. " . $e->getMessage());
             }
 
-            if (!class_exists($class) && !interface_exists($class)) {
-                throw new ConfigException(sprintf("The service class '%s' does not exist", $class));
+            if ($this->validate) {
+                if (!class_exists($class) && !interface_exists($class)) {
+                    throw new ConfigException(sprintf("The service class '%s' does not exist", $class));
+                }
             }
+
 
             // factories
             $factory = [];
@@ -580,21 +599,27 @@ class ContainerBuilder {
                 } catch (ReferenceException $e) {
                     throw new ReferenceException("Error parsing factory class for '$key'. " . $e->getMessage());
                 }
-                if (!class_exists($factoryClass)) {
-                    throw new ConfigException(
-                        sprintf("The factory class '%s', for '%s', does not exist", $factoryClass, $key)
-                    );
+
+                if ($this->validate) {
+
+                    if (!class_exists($factoryClass)) {
+                        throw new ConfigException(
+                            sprintf("The factory class '%s', for '%s', does not exist", $factoryClass, $key)
+                        );
+                    }
+
+                    // make sure the method actually exists on the class
+                    if (!method_exists($factoryClass, $factory["method"])) {
+                        throw new ConfigException(
+                            sprintf(
+                                "Invalid factory definition. The method '%s' does not exist on the class '%s'",
+                                $factory["method"],
+                                $factoryClass
+                            )
+                        );
+                    }
                 }
-                // make sure the method actually exists on the class
-                if (!method_exists($factoryClass, $factory["method"])) {
-                    throw new ConfigException(
-                        sprintf(
-                            "Invalid factory definition. The method '%s' does not exist on the class '%s'",
-                            $factory["method"],
-                            $factoryClass
-                        )
-                    );
-                }
+
                 $factory["class"] = $factoryClass;
             }
 
@@ -695,9 +720,13 @@ class ContainerBuilder {
         if (empty($call["method"])) {
             throw new ConfigException(sprintf("Call '%s' for the service '%s' does not specify a method name", $i, $key));
         }
-        if (!empty($class) && !method_exists($class, $call["method"])) {
-            throw new ConfigException(sprintf("Error for service '%s': the method call '%s' does not exist for the class '%s'", $key, $call["method"], $class));
+
+        if ($this->validate) {
+            if (!empty($class) && !method_exists($class, $call["method"])) {
+                throw new ConfigException(sprintf("Error for service '%s': the method call '%s' does not exist for the class '%s'", $key, $call["method"], $class));
+            }
         }
+
 
         if (empty($call["arguments"])) {
             // if no arguments have been defined, set arguments to an empty array
