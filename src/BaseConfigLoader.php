@@ -35,6 +35,7 @@ class BaseConfigLoader
             $baseConfig->merge($fileConfig);
         }
 
+        $baseConfig->validate();
         return $baseConfig;
     }
 
@@ -95,7 +96,8 @@ class BaseConfigLoader
         for ($i=count($paths)-1; $i>=0; $i--) {
             $filePath = $paths[$i] . DIRECTORY_SEPARATOR . $file;
             if (file_exists($filePath)) {
-                return str_replace($this->baseDirectory, "", realpath($filePath));
+                return realpath($filePath);
+                //return str_replace($this->baseDirectory, "", realpath($filePath));
             }
         }
 

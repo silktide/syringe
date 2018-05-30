@@ -4,6 +4,8 @@
 namespace Silktide\Syringe;
 
 // Todo: How does it know about hierarchy if a sub-project overwrites another sub-project
+use Silktide\Syringe\Exception\ConfigException;
+
 class BaseConfig
 {
     const ACCEPTABLE_KEYS = [
@@ -11,7 +13,8 @@ class BaseConfig
         "parameters" => 1,
         "services" => 1,
         "inherit" => 1,
-        "extensions" => 1
+        "extensions" => 1,
+        "static" => 1
     ];
 
     const ACCEPTABLE_SERVICE_KEYS = [
@@ -39,11 +42,11 @@ class BaseConfig
         $this->data["services"] = $data["services"] ?? [];
         $this->data["extensions"] = $data["extensions"] ?? [];
         $this->data["inherit"] = $data["inherit"] ?? null;
-        $this->alias = $alias;
         $this->validate();
+        $this->alias = $alias;
     }
 
-    protected function validate()
+    public function validate()
     {
         foreach ($this->data as $k => $_) {
             if (!isset(self::ACCEPTABLE_KEYS[$k])) {
@@ -51,10 +54,35 @@ class BaseConfig
             }
         }
 
-        foreach ($this->data["services"] as $service) {
-            foreach ($service as $key => $value) {
+        foreach ($this->data["services"] as $definition) {
+            foreach ($definition as $key => $value) {
                 if (!isset(self::ACCEPTABLE_SERVICE_KEYS[$key])) {
-                    throw new \Exception($key." is not a valid services key");
+                    throw new \Exception($key . " is not a valid services key");
+                }
+            }
+
+            if (!empty($definition["aliasOf"])) {
+                continue;
+            }
+
+            // Validate classes
+            if (empty($definition["class"])) {
+                throw new ConfigException(sprintf("The service definition for '%s' does not have a class", $key));
+            }
+
+            if (!class_exists($definition["class"]) && !interface_exists($definition["class"])) {
+                throw new ConfigException("Class: '{$definition["class"]}' was referenced but does not exist'");
+            }
+
+            if (isset($definition["factoryClass"]) && !class_exists($definition["factoryClass"])) {
+                throw new ConfigException("Class: '{$definition["factoryClass"]}' was referenced but does not exist'");
+            }
+
+            // Validate factories
+            if (!empty($definition["factoryMethod"])) {
+                // If factoryMethod is set, then it must have either a factoryClass OR a factoryService, not both
+                if (!(isset($definition["factoryClass"]) xor isset($definition["factoryService"]))) {
+                    throw new ConfigException(sprintf("The service definition for '%s' should ONE of a factoryClass or a factoryService.", $key));
                 }
             }
         }

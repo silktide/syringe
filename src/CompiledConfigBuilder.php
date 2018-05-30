@@ -87,25 +87,6 @@ class CompiledConfigBuilder
                 }
             }
 
-            // Validate classes
-            if (empty($definition["class"])) {
-                throw new ConfigException(sprintf("The service definition for %s does not have a class", $key));
-            }
-
-            $class = $definition["class"];
-
-            if (!class_exists($class) && !interface_exists($class)) {
-                throw new ConfigException(sprintf("The service class '%s' does not exist", $class));
-            }
-
-            // Validate factories
-            if (!empty($definition["factoryMethod"])) {
-                // If factoryMethod is set, then it must have either a factoryClass OR a factoryService, not both
-                if (!(isset($definition["factoryClass"]) xor isset($definition["factoryService"]))) {
-                    throw new ConfigException(sprintf("The service definition for '%s' should ONE of a factoryClass or a factoryService.", $key));
-                }
-            }
-
             if (isset($definition["tags"])) {
                 foreach ($definition["tags"] as $tag) {
                     $tags[$tag][] = $key;
