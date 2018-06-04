@@ -28,6 +28,4 @@ class TagCollection
         }
         return $this->services[$key];
     }
-
-
-} 
+}

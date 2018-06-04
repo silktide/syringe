@@ -9,20 +9,16 @@ use Silktide\Syringe\Exception\ConfigException;
 
 class ReferenceResolver
 {
-    public function resolveArray(Container $container, array $array, bool $recursive = false)
+    public function resolveArray(Container $container, array $array)
     {
         foreach ($array as $k => $v) {
             $array[$k] = $this->resolve($container, $v);
-            if ($recursive && is_array($array[$k])) {
-                $array[$k] = $this->resolveArray($container, $array[$k]);
-            }
         }
         return $array;
     }
 
     public function resolve(Container $container, $parameter)
     {
-        //echo "ReferenceResolver Resolving: {$parameter}\n";
         if (!is_string($parameter) || mb_strlen($parameter) === 0) {
             return $parameter;
         }
@@ -36,7 +32,9 @@ class ReferenceResolver
                  * @var TagCollection $tagCollection
                  */
                 $tagCollection = $container->offsetGet($parameter);
-                return $tagCollection->getServices();
+                return array_map(function(string $serviceName) use ($container) {
+                    return $container[$serviceName];
+                }, array_values($tagCollection->getServices()));
         }
 
         $parameter = $this->replaceParameters($container, $parameter);

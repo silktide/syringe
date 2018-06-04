@@ -72,10 +72,10 @@ class ContainerBuilder
                     if (isset($definition["factoryService"])) {
                         $service = $this->referenceResolver->resolve($container, $definition["factoryService"]);
                         $method = $definition["factoryMethod"];
-                        $arguments = $this->referenceResolver->resolveArray($container, $definition["arguments"] ?? [], true);
+                        $arguments = $this->referenceResolver->resolveArray($container, $definition["arguments"] ?? []);
                         return call_user_func_array([$service, $method], $arguments);
                     } else {
-                        $arguments = $this->referenceResolver->resolveArray($container, $definition["arguments"] ?? [], true);
+                        $arguments = $this->referenceResolver->resolveArray($container, $definition["arguments"] ?? []);
                         $factoryClass = $definition["factoryClass"];
                         $factoryMethod = $definition["factoryMethod"];
                         return call_user_func_array([$factoryClass, $factoryMethod], $arguments);
@@ -104,8 +104,8 @@ class ContainerBuilder
                 // tags are either defined as ' - "#tagName" ' or ' "#tagName": "tagKey" ', so
                 // we have to detect the type of $tag and change the variables around if required
                 $tagCollection = new TagCollection();
-                foreach ($services as $key => $serviceName) {
-                    $tagCollection->addService($serviceName, $key);
+                foreach ($services as $serviceName) {
+                    $tagCollection->addService($serviceName);
                 }
                 return $tagCollection;
             };

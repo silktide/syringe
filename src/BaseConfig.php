@@ -31,37 +31,51 @@ class BaseConfig
         "tags" => 1,
     ];
 
-    protected $data = [];
+    protected $keys = [];
     protected $alias = null;
+    protected $imports = [];
+    protected $inherit = null;
+
+    protected $parameters = [];
+    protected $services = [];
+    protected $extensions = [];
+
+    protected $nonSelfAliasedParameters = [];
+    //protected $nonSelfAliasedParameters = [];
+
+
+    protected $selfAliasedParameters = [];
+    protected $selfAliasedServices = [];
+    protected $selfAliasedExtensions = [];
 
     public function __construct(array $data = [], string $alias = null)
     {
-        $this->data = $data;
-        $this->data["imports"] = $data["imports"] ?? [];
-        $this->data["parameters"] = $data["parameters"] ?? [];
-        $this->data["services"] = $data["services"] ?? [];
-        $this->data["extensions"] = $data["extensions"] ?? [];
-        $this->data["inherit"] = $data["inherit"] ?? null;
-        $this->validate();
+        $this->keys = array_keys($data);
         $this->alias = $alias;
+        $this->imports = $data["imports"] ?? [];
+        $this->inherit = $data["inherit"] ?? null;
+
+        $this->parameters = $data["parameters"] ?? [];
+        $this->services = $data["services"] ?? [];
+        $this->extensions = $data["extensions"] ?? [];
     }
 
     public function validate()
     {
-        foreach ($this->data as $k => $_) {
-            if (!isset(self::ACCEPTABLE_KEYS[$k])) {
-                throw new \Exception($k." is not a valid services key");
+        foreach ($this->keys as $key) {
+            if (!isset(self::ACCEPTABLE_KEYS[$key])) {
+                throw new ConfigException($key." is not a valid services key");
             }
         }
 
-        foreach ($this->data["services"] as $definition) {
+        foreach ($this->services as $serviceName => $definition) {
             foreach ($definition as $key => $value) {
                 if (!isset(self::ACCEPTABLE_SERVICE_KEYS[$key])) {
-                    throw new \Exception($key . " is not a valid services key");
+                    throw new ConfigException($key . " is not a valid services key");
                 }
             }
 
-            if (!empty($definition["aliasOf"])) {
+            if (!empty($definition["aliasOf"]) || !empty($definition["abstract"])) {
                 continue;
             }
 
@@ -74,10 +88,6 @@ class BaseConfig
                 throw new ConfigException("Class: '{$definition["class"]}' was referenced but does not exist'");
             }
 
-            if (isset($definition["factoryClass"]) && !class_exists($definition["factoryClass"])) {
-                throw new ConfigException("Class: '{$definition["factoryClass"]}' was referenced but does not exist'");
-            }
-
             // Validate factories
             if (!empty($definition["factoryMethod"])) {
                 // If factoryMethod is set, then it must have either a factoryClass OR a factoryService, not both
@@ -85,16 +95,25 @@ class BaseConfig
                     throw new ConfigException(sprintf("The service definition for '%s' should ONE of a factoryClass or a factoryService.", $key));
                 }
             }
+
+            if (isset($definition["factoryClass"]) && !class_exists($definition["factoryClass"])) {
+                throw new ConfigException("Class: '{$definition["factoryClass"]}' was referenced but does not exist'");
+            }
+
+            if (isset($definition["factoryService"])) {
+                if (mb_strlen($definition["factoryService"]) === 0) {
+                    throw new ConfigException("Service '{$serviceName}' references a factoryService but doesn't provide one");
+                }
+            }
         }
-
-
     }
+
     /**
      * @return array
      */
     public function getImports() : array
     {
-        return $this->data["imports"];
+        return $this->imports;
     }
 
     /**
@@ -102,7 +121,7 @@ class BaseConfig
      */
     public function getParameters() : array
     {
-        return $this->data["parameters"];
+        return $this->parameters;
     }
 
     /**
@@ -110,7 +129,7 @@ class BaseConfig
      */
     public function getServices() : array
     {
-        return $this->data["services"];
+        return $this->services;
     }
 
     /**
@@ -118,12 +137,12 @@ class BaseConfig
      */
     public function getInherit(): ?string
     {
-        return $this->data["inherit"];
+        return $this->inherit;
     }
 
     public function getExtensions(): array
     {
-        return $this->data["extensions"];
+        return $this->extensions;
     }
 
     /**
@@ -134,32 +153,38 @@ class BaseConfig
         return $this->alias;
     }
 
-    public function toAliasedArray()
+    public function getParametersByAlias(bool $selfAliased)
     {
-        if (is_null($this->alias)) {
-            return [
-                "parameters" => $this->getParameters(),
-                "services" => $this->getServices(),
-                "extensions" => $this->getExtensions()
-            ];
-        }
+        return $this->getByAlias($this->getParameters(), $selfAliased);
+    }
 
+    public function getServicesByAlias(bool $selfAliased)
+    {
+        return $this->getByAlias($this->getServices(), $selfAliased);
+    }
+
+    public function getExtensionsByAlias(bool $selfAliased)
+    {
+        return $this->getByAlias($this->getExtensions(), $selfAliased);
+    }
+
+    protected function getByAlias(array $data, bool $selfAliased)
+    {
         $return = [];
-        foreach (["parameters", "services", "extensions"] as $type) {
-            $return[$type] = [];
-            foreach ($this->data[$type] as $k => $value) {
-                $return[$type][$this->alias($k)] = $this->recursivelyAlias($value);
+        foreach ($data as $key => $value) {
+            $aliasedKey = $this->alias($key);
+            if ($selfAliased && $this->isSelfAliased($aliasedKey)) {
+                $return[$aliasedKey] = $this->recursivelyAlias($value);
+            } elseif (!$selfAliased && !$this->isSelfAliased($aliasedKey)) {
+                $return[$aliasedKey] = $this->recursivelyAlias($value);
             }
         }
         return $return;
     }
 
+
     public function getAliasedParameters()
     {
-        if (is_null($this->alias)) {
-            return $this->getParameters();
-        }
-
         $return = [];
         foreach ($this->getParameters() as $k => $value) {
             $return[$this->alias($k)] = $this->recursivelyAlias($value);
@@ -167,7 +192,7 @@ class BaseConfig
         return $return;
     }
 
-    public function getAliasedServices()
+    public function getAliasedServices(bool $self = false)
     {
         if (is_null($this->alias)) {
             return $this->getServices();
@@ -180,7 +205,7 @@ class BaseConfig
         return $return;
     }
 
-    public function getAliasedExtensions()
+    public function getAliasedExtensions(bool $self = false)
     {
         if (is_null($this->alias)) {
             return $this->getExtensions();
@@ -195,14 +220,28 @@ class BaseConfig
 
     protected function alias(string $string)
     {
-        $regexSeparator = '\\' .Token::ALIAS_SEPARATOR;
-
-        if (preg_match("/^silktide_.*".$regexSeparator.".+$/", $string)) {
+        if (is_null($this->alias) || $this->isAliased($string)) {
             return $string;
         }
-
         return $this->alias . Token::ALIAS_SEPARATOR . $string;
     }
+
+    protected function isAliased(string $key)
+    {
+        // Todo: This is kind of terrible as the regex will of course depend on the alias separator
+        // If we change the separator, the regex will most likely need updated =/
+        $regexSeparator = '\\' .Token::ALIAS_SEPARATOR;
+        return (preg_match("/^silktide_.*{$regexSeparator}.+$/", $key));
+    }
+
+    protected function isSelfAliased(string $key)
+    {
+        // Todo: This is kind of terrible as the regex will of course depend on the alias separator
+        // If we change the separator, the regex will most likely need updated =/
+        $regexSeparator = '\\' .Token::ALIAS_SEPARATOR;
+        return $this->alias === null || preg_match("/^{$this->alias}{$regexSeparator}.+$/", $key);
+    }
+
 
     protected function recursivelyAlias($value)
     {
@@ -242,20 +281,54 @@ class BaseConfig
         return $value;
     }
 
-    public function merge(BaseConfig $config)
+    public function mergeSelfAliased(BaseConfig $config)
     {
-        // Todo: Possibly throw an exception when we overwrite things within services when aliasOf isn't set.
-        // Todo: Work out how aliasOf should effect it anyway...
-        foreach ($config->getAliasedParameters() as $k => $v) {
-            $this->data["parameters"][$k] = $v;
+        $this->merge($config, true);
+    }
+
+
+    public function mergeNonSelfAliased(BaseConfig $config)
+    {
+        $this->merge($config, false);
+    }
+
+    protected function merge(BaseConfig $config, bool $selfAliased)
+    {
+        foreach ($config->getParametersByAlias($selfAliased) as $k => $v) {
+            $this->parameters[$k] = $v;
         }
 
-        foreach ($config->getAliasedServices() as $k => $v) {
-            $this->data["services"][$k] = $v;
+        foreach ($config->getServicesByAlias($selfAliased) as $serviceName => $definition) {
+            if (isset($this->services[$serviceName]) && !isset($definition["aliasOf"])) {
+                throw new ConfigException("Overwriting existing service '{$serviceName}'. Services can only be overwritten using aliasOf");
+            }
+            $this->services[$serviceName] = $definition;
         }
 
-        foreach ($config->getAliasedExtensions() as $k => $v) {
-            $this->data["extensions"][$k] = $v;
+        foreach ($config->getExtensionsByAlias($selfAliased) as $k => $v) {
+            $this->extensions[$k] = $v;
+        }
+    }
+
+    /**
+     * Weak merge is used when we merge in an *inherited* config, we only copy across stuff if it doesn't already exist
+     *
+     * @param BaseConfig $config
+     */
+    public function inheritMerge(BaseConfig $config)
+    {
+        if (count($config->getServices()) > 0) {
+            throw new ConfigException("Inherited configs should not contain services.");
+        }
+
+        if (count($config->getImports()) > 0) {
+            throw new ConfigException("Inherited configs should not contain imports.");
+        }
+
+        foreach ($config->getParameters() as $k => $v) {
+            if (!isset($this->parameters[$k])) {
+                $this->parameters[$k] = $v;
+            }
         }
     }
 }

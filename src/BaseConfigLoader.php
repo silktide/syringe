@@ -32,7 +32,11 @@ class BaseConfigLoader
 
         $baseConfig = new BaseConfig();
         foreach ($files as $fileConfig) {
-            $baseConfig->merge($fileConfig);
+            $baseConfig->mergeSelfAliased($fileConfig);
+        }
+
+        foreach ($files as $fileConfig) {
+            $baseConfig->mergeNonSelfAliased($fileConfig);
         }
 
         $baseConfig->validate();
@@ -54,8 +58,7 @@ class BaseConfigLoader
 
             $fileInVendor = $inVendor;
             $data = $this->loadFile($filename, $paths);
-            $file = new BaseConfig($data, $alias);
-
+            $config = $this->createConfig($data, $alias);
 
             // The first time we enter the vendor directory we should flush the paths. We never want a vendor/syringe.yml
             // loading a base services.yml or similar
@@ -71,13 +74,15 @@ class BaseConfigLoader
 
             // There's no real difference between import and inherit except for the order of which they are
             // processed. Inherit should be processed before and import afterwards
-            if (!is_null($inherit = $file->getInherit())) {
-                $returnFiles = array_merge($returnFiles, $this->buildFileList([$inherit => $alias], $internalPaths, $fileInVendor));
+            // Except for the fact that Inherit shouldn't moan when we overwrite itself
+            if (!is_null($inherit = $config->getInherit())) {
+                $inherited = $this->buildFileList([$inherit => $alias], $internalPaths, $fileInVendor);
+                $config->inheritMerge($inherited[0]);
             }
 
-            $returnFiles[$filename] = $file;
+            $returnFiles[] = $config;
 
-            if (count($imports = $file->getImports()) > 0){
+            if (count($imports = $config->getImports()) > 0){
                 $aliasedImports = [];
                 foreach ($imports as $v) {
                     $aliasedImports[$v] = $alias;
@@ -87,6 +92,11 @@ class BaseConfigLoader
         }
 
         return $returnFiles;
+    }
+
+    protected function createConfig(array $data, string $alias = null)
+    {
+        return new BaseConfig($data, $alias);
     }
 
 
