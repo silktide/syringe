@@ -10,7 +10,7 @@ use Silktide\Syringe\Loader\LoaderInterface;
 use Silktide\Syringe\Loader\PhpLoader;
 use Silktide\Syringe\Loader\YamlLoader;
 
-class AggregatedConfigLoader
+class MasterConfigBuilder
 {
     /**
      * @var LoaderInterface[]
@@ -30,11 +30,11 @@ class AggregatedConfigLoader
         $this->baseDirectory = realpath($baseDirectory ?? __DIR__."/../") . "/";
         $files = $this->buildFileList($files, $paths);
 
-        $aggregatedConfig = new AggregatedConfig();
+        $masterConfig = new MasterConfig();
         foreach ($files as $file) {
-            $aggregatedConfig->addFileConfig($file);
+            $masterConfig->addFileConfig($file);
         }
-        return $aggregatedConfig;
+        return $masterConfig;
     }
 
     /**

@@ -6,7 +6,7 @@ namespace Silktide\Syringe;
 
 use Silktide\Syringe\Exception\ConfigException;
 
-class AggregatedConfig
+class MasterConfig
 {
     protected $services = [];
     protected $parameters = [];

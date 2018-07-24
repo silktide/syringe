@@ -1,5 +1,7 @@
 <?php
 
+namespace Silktide\Syringe;
+
 class Token
 {
     /**

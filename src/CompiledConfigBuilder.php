@@ -8,15 +8,15 @@ use Silktide\Syringe\Exception\ConfigException;
 
 class CompiledConfigBuilder
 {
-    public function build(AggregatedConfig $aggregatedConfig)
+    public function build(MasterConfig $masterConfig)
     {
         $abstractServices = [];
         $aliases = [];
 
-        $services = $aggregatedConfig->getServices();
-        $parameters = $aggregatedConfig->getParameters();
+        $services = $masterConfig->getServices();
+        $parameters = $masterConfig->getParameters();
         // These'll get run too as part of this!
-        $extensions = $aggregatedConfig->getExtensions();
+        $extensions = $masterConfig->getExtensions();
         $tags = [];
 
         foreach ($services as $key => $definition) {

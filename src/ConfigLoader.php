@@ -6,7 +6,7 @@ namespace Silktide\Syringe;
 
 class ConfigLoader
 {
-    public function __construct(AggregatedConfigLoader $aggregatedConfigLoader, CompiledConfigBuilder $builder)
+    public function __construct(MasterConfigBuilder $masterConfigBuilder, CompiledConfigBuilder $builder)
     {
     }
 }
