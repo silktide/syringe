@@ -10,7 +10,7 @@ use Silktide\Syringe\Loader\LoaderInterface;
 use Silktide\Syringe\Loader\PhpLoader;
 use Silktide\Syringe\Loader\YamlLoader;
 
-class BaseConfigLoader
+class AggregatedConfigLoader
 {
     /**
      * @var LoaderInterface[]
@@ -30,27 +30,22 @@ class BaseConfigLoader
         $this->baseDirectory = realpath($baseDirectory ?? __DIR__."/../") . "/";
         $files = $this->buildFileList($files, $paths);
 
-        $baseConfig = new BaseConfig();
-        foreach ($files as $fileConfig) {
-            $baseConfig->mergeSelfAliased($fileConfig);
+        $aggregatedConfig = new AggregatedConfig();
+        foreach ($files as $file) {
+            $aggregatedConfig->addFileConfig($file);
         }
-
-        foreach ($files as $fileConfig) {
-            $baseConfig->mergeNonSelfAliased($fileConfig);
-        }
-
-        $baseConfig->validate();
-        return $baseConfig;
+        return $aggregatedConfig;
     }
 
     /**
      * @param array $files
      * @param array $paths
      * @param bool $inVendor
-     * @return BaseConfig[]
+     * @return array
+     * @throws Exception\ConfigException
      * @throws LoaderException
      */
-    protected function buildFileList(array $files = [], array $paths, bool $inVendor = false)
+    protected function buildFileList(array $files = [], array $paths, bool $inVendor = false) : array
     {
         $returnFiles = [];
 
@@ -72,9 +67,8 @@ class BaseConfigLoader
                 $internalPaths[] = mb_substr($filename, 0, $pos);
             }
 
-            // There's no real difference between import and inherit except for the order of which they are
-            // processed. Inherit should be processed before and import afterwards
-            // Except for the fact that Inherit shouldn't moan when we overwrite itself
+            // Inherit should never moan when it overwrites itself and should only contain parameters otherwise it's
+            // going to get very confusing, as such it has it's own separate merge
             if (!is_null($inherit = $config->getInherit())) {
                 $inherited = $this->buildFileList([$inherit => $alias], $internalPaths, $fileInVendor);
                 $config->inheritMerge($inherited[0]);
@@ -96,7 +90,7 @@ class BaseConfigLoader
 
     protected function createConfig(array $data, string $alias = null)
     {
-        return new BaseConfig($data, $alias);
+        return new FileConfig($data, $alias);
     }
 
 
@@ -107,7 +101,6 @@ class BaseConfigLoader
             $filePath = $paths[$i] . DIRECTORY_SEPARATOR . $file;
             if (file_exists($filePath)) {
                 return realpath($filePath);
-                //return str_replace($this->baseDirectory, "", realpath($filePath));
             }
         }
 

@@ -99,10 +99,11 @@ class ContainerBuilder
         }
 
         foreach ($compiledConfig->getTags() as $tag => $services) {
-            $container[Token::TAG_CHAR . $tag] = function () use ($container, $services) {
+            $container[\Token::TAG_CHAR . $tag] = function () use ($container, $services) {
                 // Although I've never come across anything with the latter...
                 // tags are either defined as ' - "#tagName" ' or ' "#tagName": "tagKey" ', so
                 // we have to detect the type of $tag and change the variables around if required
+                // Todo: Reimplement this, as we clearly removed it
                 $tagCollection = new TagCollection();
                 foreach ($services as $serviceName) {
                     $tagCollection->addService($serviceName);

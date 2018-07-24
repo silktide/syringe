@@ -8,34 +8,15 @@ use Silktide\Syringe\Exception\ConfigException;
 
 class CompiledConfigBuilder
 {
-    public function build(BaseConfig $baseConfig)
+    public function build(AggregatedConfig $aggregatedConfig)
     {
-
-        // So the idea of compiled config should be to take anything that says anything like extends and glomp it
-        // together
-
-        /*foreach ($baseConfig->getParameters() as $key => $value) {
-            $container[$key] = function() use ($container, $key, $value) {
-                try{
-                    return $this->referenceResolver->resolve($container, $value);
-                } catch (ReferenceException $e) {
-                    throw new ReferenceException("Error with key '$key'. " . $e->getMessage());
-                }
-            };
-        }*/
-
-        //
-        // Do the services!
-        //
-
-
         $abstractServices = [];
         $aliases = [];
 
-        $services = $baseConfig->getServices();
-        $parameters = $baseConfig->getParameters();
+        $services = $aggregatedConfig->getServices();
+        $parameters = $aggregatedConfig->getParameters();
         // These'll get run too as part of this!
-        $extensions = $baseConfig->getExtensions();
+        $extensions = $aggregatedConfig->getExtensions();
         $tags = [];
 
         foreach ($services as $key => $definition) {
@@ -44,16 +25,6 @@ class CompiledConfigBuilder
                 unset($services[$key]);
             }
         }
-
-        //$parameters = $this->
-        // We'll want to recursively build up the parameters to something actual
-        // Also, any constants we use OR any environment variables will need special handling
-        //foreach ($parameters as $key => $definition) {
-
-        //}
-
-        //print_r($parameters);
-        //die();
 
         foreach ($services as $key => &$definition) {
             if (!empty($definition["aliasOf"])) {
