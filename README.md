@@ -53,7 +53,7 @@ The most computationally expensive part of Syringe (certainly when using many sy
 	1. the aliasing of the different parameters and
 	2. the validating of the classes/methods inside the configuration files
 
-By passing in the `cache` parameter we cache the generated CompiledConfig and use that instead. This leads to much, much faster code (well over twice as fast)
+By passing in the `cache` parameter we cache the generated CompiledConfig and use that instead. This leads to much, much faster code (takes about 7% of the time)
 
 
 # Configuration Files
