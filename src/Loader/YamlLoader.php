@@ -15,7 +15,7 @@ class YamlLoader implements LoaderInterface
      * YamlLoader constructor.
      * @param bool $forceSymfony
      */
-    public function __construct($forceSymfony = false)
+    public function __construct(bool $forceSymfony = false)
     {
         if ($forceSymfony || !function_exists("yaml_parse")) {
             $this->useSymfony = true;
@@ -25,7 +25,7 @@ class YamlLoader implements LoaderInterface
     /**
      * {@inheritDoc}
      */
-    public function getName()
+    public function getName() : string
     {
         return "YAML Loader";
     }
@@ -33,7 +33,7 @@ class YamlLoader implements LoaderInterface
     /**
      * {@inheritDoc}
      */
-    public function supports($file)
+    public function supports(string $file) : bool
     {
         return (in_array(pathinfo($file, PATHINFO_EXTENSION), ["yml", "yaml"]));
     }
@@ -42,14 +42,14 @@ class YamlLoader implements LoaderInterface
      * {@inheritDoc}
      * @throws \Silktide\Syringe\Exception\LoaderException
      */
-    public function loadFile($file)
+    public function loadFile(string $file) : array
     {
         if ($this->useSymfony) {
             try {
-                if (!file_exists($file)) {
-                    throw new LoaderException("Requested YAML file '{$file}' doesn't exist");
+                if (file_exists($file)) {
+                    return Yaml::parseFile($file);
                 }
-                return Yaml::parse(file_get_contents($file));
+                throw new LoaderException("Requested YAML file '{$file}' doesn't exist");
             } catch (ParseException $e) {
                 throw new LoaderException("Could not load the YAML file '{$file}': ".$e->getMessage());
             }

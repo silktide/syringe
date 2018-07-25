@@ -7,18 +7,18 @@ interface LoaderInterface {
     /**
      * @return string
      */
-    public function getName();
+    public function getName() : string;
 
     /**
-     * @param $file
+     * @param string $file
      * @return bool
      */
-    public function supports($file);
+    public function supports(string $file) : bool;
 
     /**
-     * @param $file
+     * @param string $file
      * @return array
      */
-    public function loadFile($file);
+    public function loadFile(string $file) : array;
 
 } 

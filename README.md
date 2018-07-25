@@ -17,6 +17,8 @@ method that takes an array of configuration options
 - Private services have been removed, in practice they added nothing useful but complicated affairs. 
 - Environment variables are no longer injected through prefixing parameters with `SYRINGE__FOO` as this was a bit clunky and the wrong way around to do it. A new token of `&` means we can inject environment variables as parameters like so `&foo&`
 - IniLoader has been removed, the format doesn't suit DI particularly nicely.
+- Now requires PHP 7.1
+- LoaderInterface updated, now requires typehints 
 
 ## Todos:
 

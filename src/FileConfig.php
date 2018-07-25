@@ -38,9 +38,7 @@ class FileConfig
     protected $services = [];
     protected $extensions = [];
 
-    protected $modifiedTime;
-
-    public function __construct(array $data = [], string $alias = null, int $modifiedTime)
+    public function __construct(array $data = [], string $alias = null)
     {
         $this->keys = array_keys($data);
         $this->alias = $alias;
@@ -50,8 +48,6 @@ class FileConfig
         $this->parameters = $data["parameters"] ?? [];
         $this->services = $data["services"] ?? [];
         $this->extensions = $data["extensions"] ?? [];
-
-        $this->modifiedTime = $modifiedTime;
     }
 
 
@@ -166,7 +162,7 @@ class FileConfig
 
             // Validate classes
             if (empty($definition["class"])) {
-                throw new ConfigException(sprintf("The service definition for '%s' does not have a class", $key));
+                throw new ConfigException(sprintf("The service definition for '%s' does not have a class", $serviceName));
             }
 
             if (!class_exists($definition["class"]) && !interface_exists($definition["class"])) {
@@ -177,7 +173,7 @@ class FileConfig
             if (!empty($definition["factoryMethod"])) {
                 // If factoryMethod is set, then it must have either a factoryClass OR a factoryService, not both
                 if (!(isset($definition["factoryClass"]) xor isset($definition["factoryService"]))) {
-                    throw new ConfigException(sprintf("The service definition for '%s' should ONE of a factoryClass or a factoryService.", $key));
+                    throw new ConfigException(sprintf("The service definition for '%s' should ONE of a factoryClass or a factoryService.", $serviceName));
                 }
             }
 
@@ -246,10 +242,5 @@ class FileConfig
         }
 
         return $value;
-    }
-
-    public function getModifiedTime()
-    {
-        return $this->modifiedTime;
     }
 }

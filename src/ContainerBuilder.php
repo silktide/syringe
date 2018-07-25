@@ -35,29 +35,25 @@ class ContainerBuilder
         }
 
         foreach ($compiledConfig->getServices() as $key => $definition) {
-            $container[$key] = function () use ($container, $key, $definition) {
+            $container[$key] = function () use ($container, $definition) {
                 $isFactoryCreated = isset($definition["factoryMethod"]);
 
                 if ($isFactoryCreated) {
-                    $service = null;
                     if (isset($definition["factoryService"])) {
                         $service = $this->referenceResolver->resolve($container, $definition["factoryService"]);
                         $method = $definition["factoryMethod"];
                         $arguments = $this->referenceResolver->resolveArray($container, $definition["arguments"] ?? []);
                         return call_user_func_array([$service, $method], $arguments);
-                    } else {
-                        $arguments = $this->referenceResolver->resolveArray($container, $definition["arguments"] ?? []);
-                        $factoryClass = $definition["factoryClass"];
-                        $factoryMethod = $definition["factoryMethod"];
-                        return call_user_func_array([$factoryClass, $factoryMethod], $arguments);
                     }
+
+                    $arguments = $this->referenceResolver->resolveArray($container, $definition["arguments"] ?? []);
+                    $factoryClass = $definition["factoryClass"];
+                    $factoryMethod = $definition["factoryMethod"];
+                    return call_user_func_array([$factoryClass, $factoryMethod], $arguments);
                 }
 
-                $ref = new \ReflectionClass($definition["class"]);
                 $args = $this->referenceResolver->resolveArray($container, $definition["arguments"] ?? []);
-                $service = $ref->newInstanceArgs(
-                    $args
-                );
+                $service = (new \ReflectionClass($definition["class"]))->newInstanceArgs($args);
 
                 foreach ($definition["calls"] ?? [] as $call) {
                     call_user_func_array(

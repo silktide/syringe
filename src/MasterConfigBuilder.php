@@ -26,12 +26,11 @@ class MasterConfigBuilder
     /**
      * @param array $files
      * @param array $paths
-     * @param int|null $cachedModifiedTimestamp
-     * @return null|MasterConfig
+     * @return MasterConfig
      * @throws Exception\ConfigException
      * @throws LoaderException
      */
-    public function load(array $files, array $paths = []) : ?MasterConfig
+    public function load(array $files, array $paths = []) : MasterConfig
     {
         $files = $this->buildFileList($files, $paths);
 
@@ -58,7 +57,7 @@ class MasterConfigBuilder
         foreach ($files as $filename => $alias) {
             $fileInVendor = $inVendor;
             $data = $this->loadFile($filename, $paths);
-            $config = $this->createConfig($data, $alias, filemtime($filename));
+            $config = $this->createConfig($data, $alias);
 
             // The first time we enter the vendor directory we should flush the paths. We never want a vendor/syringe.yml
             // loading a base services.yml or similar
@@ -91,9 +90,9 @@ class MasterConfigBuilder
         return $returnFiles;
     }
 
-    protected function createConfig(array $data, string $alias = null, int $modifiedTime)
+    protected function createConfig(array $data, string $alias = null)
     {
-        return new FileConfig($data, $alias, $modifiedTime);
+        return new FileConfig($data, $alias);
     }
 
 
