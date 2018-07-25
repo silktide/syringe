@@ -26,6 +26,7 @@ class FileConfig
         "abstract" => 1,
         "calls" => 1,
         "tags" => 1,
+        "override" => 1
     ];
 
     protected $keys = [];

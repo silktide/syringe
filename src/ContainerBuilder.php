@@ -1,16 +1,10 @@
 <?php
 
-
 namespace Silktide\Syringe;
 
-
 use Pimple\Container;
-use Silktide\Syringe\Exception\ConfigException;
-use Silktide\Syringe\Exception\LoaderException;
 use Silktide\Syringe\Exception\ReferenceException;
 
-
-// Todo: app.dir needs set
 class ContainerBuilder
 {
     /**
@@ -25,23 +19,7 @@ class ContainerBuilder
         $this->referenceResolver = $referenceResolver;
     }
 
-    /**
-     * @param CompiledConfig $compiledConfig
-     * @param $
-     * @param string $containerClass
-     * @return Container
-     * @throws ConfigException
-     */
-    public function createContainer(CompiledConfig $compiledConfig, string $containerClass)
-    {
-        $container = new $containerClass();
-        // Live generate a cached class that extends from thiskashkawal
-
-        $this->populateContainer($container, $compiledConfig);
-        return $container;
-    }
-
-    protected function populateContainer(Container $container, CompiledConfig $compiledConfig)
+    public function populateContainer(Container $container, CompiledConfig $compiledConfig)
     {
         //
         // Do the parameters!

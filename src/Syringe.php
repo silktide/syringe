@@ -1,9 +1,7 @@
 <?php
 
-
 namespace Silktide\Syringe;
 
-use Pimple\Psr11\ServiceLocator;
 use Psr\SimpleCache\CacheInterface;
 use Silktide\Syringe\Exception\ConfigException;
 use Silktide\Syringe\Loader\JsonLoader;
@@ -12,19 +10,24 @@ use Silktide\Syringe\Loader\YamlLoader;
 
 class Syringe
 {
-
     public static function build(array $config)
     {
         // Setup config
         $defaults = [
             "appDir" => getcwd(),
-            "appDirKey" => "app.dir", // Todo: Don't forget about this... although wtf is a "app.dir" anyway
-            "serviceLocatorKey" => "_syringe.service_locator",
+            "appDirKey" => "app.dir",
+            "serviceLocatorKey" => null,
             "cacheDir" => sys_get_temp_dir() . "/syringe/",
             "loaders" => [new YamlLoader(), new PhpLoader(), new JsonLoader()],
             "paths" => [getcwd() . "/config"],
             "files" => ["syringe.yml"],
             "containerClass" => ContainerBuilder::DEFAULT_CONTAINER_CLASS,
+            // The functionality is easy to reimplement, but for reasons of forward compatibility, unless there's a
+            // strong need I'm not going to implement the ability to populate a containerObject yet.
+
+            // This is primarily because I believe doing so will strongly hinder my ability to add autowiring without
+            // causing another BC
+            //"containerObject" => null,
             "cache" => null
         ];
 
@@ -61,29 +64,44 @@ class Syringe
         }
 
         $containerBuilder = new ContainerBuilder(new ReferenceResolver());
-        $container = $containerBuilder->createContainer($compiledConfig, $config["containerClass"]);
 
+        //$container = $config["containerObject"] ?? new $config["containerClass"];
+        $container = new $config["containerClass"];
+        $containerBuilder->populateContainer($container, $compiledConfig);
 
-        $container[$config["appDirKey"]] = $config["appDir"];
-        /*$container["silktide_syringe.serviceLocator"] = function () use ($container) {
-            return new ServiceLocator($container);
-        }*/
+        if (!is_null($config["appDirKey"])) {
+            $container[$config["appDirKey"]] = $config["appDir"];
+        }
+
+        if (!is_null($config["serviceLocatorKey"])) {
+            $container[$config["serviceLocatorKey"]] = new ServiceLocator($container);
+        }
+
         return $container;
     }
 
     protected static function validateConfig(array $config = [])
     {
         // Validate config
+
+        //if (!is_null($config["containerObject"])) {
+            //self::validateContainerClass(get_class($config["containerObject"]));
+
         if ($config["containerClass"] !== ContainerBuilder::DEFAULT_CONTAINER_CLASS) {
-            $containerClass = $config["containerClass"];
-            // check existence
-            if (!class_exists($containerClass)) {
-                throw new ConfigException(sprintf("The container class '%s' does not exist", $containerClass));
-            }
-            // check the class is a container
-            if ($containerClass != ContainerBuilder::DEFAULT_CONTAINER_CLASS && !is_subclass_of($containerClass, ContainerBuilder::DEFAULT_CONTAINER_CLASS)) {
-                throw new ConfigException(sprintf("The class '%s' is not a subclass of '%s'", $containerClass, ContainerBuilder::DEFAULT_CONTAINER_CLASS));
-            }
+            self::validateContainerClass($config["containerClass"]);
+        }
+    }
+
+    protected static function validateContainerClass(string $containerClass)
+    {
+        // check existence
+        if (!class_exists($containerClass)) {
+            throw new ConfigException(sprintf("The container class '%s' does not exist", $containerClass));
+        }
+
+        // check the class is a container
+        if ($containerClass != ContainerBuilder::DEFAULT_CONTAINER_CLASS && !is_subclass_of($containerClass, ContainerBuilder::DEFAULT_CONTAINER_CLASS)) {
+            throw new ConfigException(sprintf("The class '%s' is not a subclass of '%s'", $containerClass, ContainerBuilder::DEFAULT_CONTAINER_CLASS));
         }
     }
 }

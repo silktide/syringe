@@ -34,8 +34,10 @@ class MasterConfigBuilder
     public function load(array $files, array $paths = []) : ?MasterConfig
     {
         $files = $this->buildFileList($files, $paths);
+
         $masterConfig = new MasterConfig();
         foreach ($files as $file) {
+            $file->validate();
             $masterConfig->addFileConfig($file);
         }
         return $masterConfig;
