@@ -11,8 +11,7 @@ class FileConfig
         "parameters" => 1,
         "services" => 1,
         "inherit" => 1,
-        "extensions" => 1,
-        "static" => 1
+        "extensions" => 1
     ];
 
     const ACCEPTABLE_SERVICE_KEYS = [
@@ -38,7 +37,9 @@ class FileConfig
     protected $services = [];
     protected $extensions = [];
 
-    public function __construct(array $data = [], string $alias = null)
+    protected $modifiedTime;
+
+    public function __construct(array $data = [], string $alias = null, int $modifiedTime)
     {
         $this->keys = array_keys($data);
         $this->alias = $alias;
@@ -48,6 +49,8 @@ class FileConfig
         $this->parameters = $data["parameters"] ?? [];
         $this->services = $data["services"] ?? [];
         $this->extensions = $data["extensions"] ?? [];
+
+        $this->modifiedTime = $modifiedTime;
     }
 
 
@@ -244,28 +247,8 @@ class FileConfig
         return $value;
     }
 
-    public function inheritMerge(FileConfig $config)
+    public function getModifiedTime()
     {
-        if (count($config->getImports()) > 0) {
-            throw new ConfigException("Inherited configs should not contain imports.");
-        }
-
-        foreach ($config->getServices() as $k => $v) {
-            if (!isset($this->services[$k])) {
-                $this->services[$k] = $v;
-            }
-        }
-
-        foreach ($config->getAliasedExtensions() as $k => $v) {
-            if (!isset($this->extensions[$k])) {
-                $this->extensions[$k] = array_merge($this->extensions[$k], $v);
-            }
-        }
-
-        foreach ($config->getParameters() as $k => $v) {
-            if (!isset($this->parameters[$k])) {
-                $this->parameters[$k] = $v;
-            }
-        }
+        return $this->modifiedTime;
     }
 }

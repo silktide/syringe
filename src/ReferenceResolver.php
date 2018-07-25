@@ -28,13 +28,7 @@ class ReferenceResolver
                 return $container->offsetGet(mb_substr($parameter, 1));
 
             case Token::TAG_CHAR:
-                /**
-                 * @var TagCollection $tagCollection
-                 */
-                $tagCollection = $container->offsetGet($parameter);
-                return array_map(function(string $serviceName) use ($container) {
-                    return $container[$serviceName];
-                }, array_values($tagCollection->getServices()));
+                return $container->offsetGet($parameter);
         }
 
         $parameter = $this->replaceParameters($container, $parameter);
@@ -60,14 +54,14 @@ class ReferenceResolver
 
     protected function replaceConstants(Container $container, string $parameter)
     {
-        return $this->replaceSurroundingToken($container, $parameter, Token::PARAMETER_CHAR, function($value) use ($container) {
+        return $this->replaceSurroundingToken($container, $parameter, Token::CONSTANT_CHAR, function($value) use ($container) {
             return constant($value);
         });
     }
 
     protected function replaceEnvironment(Container $container, string $parameter)
     {
-        return $this->replaceSurroundingToken($container, $parameter, Token::PARAMETER_CHAR, function($value) use ($container) {
+        return $this->replaceSurroundingToken($container, $parameter, Token::ENV_CHAR, function($value) use ($container) {
             return getenv($value);
         });
     }
@@ -94,18 +88,4 @@ class ReferenceResolver
 
         return $parameter;
     }
-
-    /*
-    protected function replaceParameters(Container $container, string $parameter)
-    {
-        while (mb_substr_count($parameter, Token::PARAMETER_CHAR) > 1) {
-            $pos1 = mb_strpos($parameter, Token::PARAMETER_CHAR);
-            $pos2 = mb_strpos($parameter, Token::PARAMETER_CHAR, $pos1 + 1);
-            $newValue = $container->offsetGet(mb_substr($parameter, $pos1 + 1, $pos2 - ($pos1 + 1)));
-            $parameter = mb_substr($parameter, 0, $pos1) . $newValue . mb_substr($parameter, $pos2 + 1);
-        }
-
-        return $parameter;
-    }
-    */
 }

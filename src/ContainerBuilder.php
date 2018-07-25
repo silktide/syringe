@@ -8,8 +8,9 @@ use Pimple\Container;
 use Silktide\Syringe\Exception\ConfigException;
 use Silktide\Syringe\Exception\LoaderException;
 use Silktide\Syringe\Exception\ReferenceException;
-use Silktide\Syringe\Loader\LoaderInterface;
 
+
+// Todo: app.dir needs set
 class ContainerBuilder
 {
     /**
@@ -17,38 +18,30 @@ class ContainerBuilder
      */
     const DEFAULT_CONTAINER_CLASS = "Pimple\\Container";
 
-    /**
-     * Contains the class name for the container we want to create
-     *
-     * @var string
-     */
-    protected $containerClass = self::DEFAULT_CONTAINER_CLASS;
-
-    /**
-     * @var string
-     */
-    protected $applicationRootDirectory;
-
-    protected $loaders = [];
-
     protected $referenceResolver;
 
-    public function __construct()
+    public function __construct(ReferenceResolver $referenceResolver)
     {
-        $this->referenceResolver = new ReferenceResolver();
+        $this->referenceResolver = $referenceResolver;
     }
 
     /**
+     * @param CompiledConfig $compiledConfig
+     * @param $
+     * @param string $containerClass
      * @return Container
+     * @throws ConfigException
      */
-    public function createContainer(CompiledConfig $compiledConfig)
+    public function createContainer(CompiledConfig $compiledConfig, string $containerClass)
     {
-        $container = new $this->containerClass();
+        $container = new $containerClass();
+        // Live generate a cached class that extends from thiskashkawal
+
         $this->populateContainer($container, $compiledConfig);
         return $container;
     }
 
-    public function populateContainer(Container $container, CompiledConfig $compiledConfig)
+    protected function populateContainer(Container $container, CompiledConfig $compiledConfig)
     {
         //
         // Do the parameters!
@@ -99,16 +92,19 @@ class ContainerBuilder
         }
 
         foreach ($compiledConfig->getTags() as $tag => $services) {
-            $container[\Token::TAG_CHAR . $tag] = function () use ($container, $services) {
+            $container[Token::TAG_CHAR . $tag] = function () use ($container, $services) {
                 // Although I've never come across anything with the latter...
                 // tags are either defined as ' - "#tagName" ' or ' "#tagName": "tagKey" ', so
                 // we have to detect the type of $tag and change the variables around if required
                 // Todo: Reimplement this, as we clearly removed it
-                $tagCollection = new TagCollection();
+                foreach ($services as $key => $service) {
+                    yield $key => $container[$service];
+                }
+                /*$tagCollection = new TagCollection();
                 foreach ($services as $serviceName) {
                     $tagCollection->addService($serviceName);
                 }
-                return $tagCollection;
+                return $tagCollection;*/
             };
         }
 
@@ -119,33 +115,5 @@ class ContainerBuilder
         }
 
         return $container;
-    }
-
-    public function setContainerClass($containerClass)
-    {
-        // check existence
-        if (!class_exists($containerClass)) {
-            throw new ConfigException(sprintf("The container class '%s' does not exist", $containerClass));
-        }
-        // check the class is a container
-        if ($containerClass != self::DEFAULT_CONTAINER_CLASS && !is_subclass_of($containerClass, self::DEFAULT_CONTAINER_CLASS)) {
-            throw new ConfigException(sprintf("The class '%s' is not a subclass of '%s'", $containerClass, self::DEFAULT_CONTAINER_CLASS));
-        }
-
-        $this->containerClass = $containerClass;
-    }
-
-    public function setApplicationRootDirectory($directory, $key = "")
-    {
-        if (!is_dir($directory)) {
-            throw new ConfigException(sprintf("Cannot set the application root directory. '%s' is not a directory", $directory));
-        }
-
-        if (empty($key)) {
-            $key = "app.dir";
-        }
-
-        $this->applicationRootDirectory = $directory;
-        $this->applicationRootDirectoryKey = $key;
     }
 }

@@ -29,8 +29,9 @@ class MasterConfig
         foreach ($this->services as $array) {
             $serviceName = $array["name"];
             $definition = $array["value"];
-            if (isset($this->services[$serviceName]) && !isset($definition["aliasOf"])) {
-                throw new ConfigException("Overwriting existing service '{$serviceName}'. Services can only be overwritten using aliasOf");
+
+            if (isset($this->services[$serviceName]) && !isset($definition["aliasOf"]) && ($definition["override"] ?? false)) {
+                throw new ConfigException("Overwriting existing service '{$serviceName}'. Services can only be overwritten using either aliasOf or override");
             }
             $services[$serviceName] = $definition;
         }
@@ -59,7 +60,7 @@ class MasterConfig
 
         $extensions = [];
         foreach ($this->extensions as $array) {
-            $extensions[$array["name"]] = $array["value"];
+            $extensions[$array["name"]] = array_merge($extensions[$array["name"]] ?? [], $array["value"]);
         }
         return $extensions;
     }

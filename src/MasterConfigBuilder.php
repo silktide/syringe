@@ -17,19 +17,23 @@ class MasterConfigBuilder
      */
     protected $loaders = [];
     protected $fileCache = [];
-    protected $baseDirectory;
 
     public function __construct(array $loaders = [])
     {
-        // If we pass no loaders, use the default loaders
-        $this->loaders = !empty($loaders) ? $loaders : [new YamlLoader(), new PhpLoader(), new JsonLoader()];
+        $this->loaders = $loaders;
     }
 
-    public function load(array $files, array $paths = [], string $baseDirectory = null)
+    /**
+     * @param array $files
+     * @param array $paths
+     * @param int|null $cachedModifiedTimestamp
+     * @return null|MasterConfig
+     * @throws Exception\ConfigException
+     * @throws LoaderException
+     */
+    public function load(array $files, array $paths = []) : ?MasterConfig
     {
-        $this->baseDirectory = realpath($baseDirectory ?? __DIR__."/../") . "/";
         $files = $this->buildFileList($files, $paths);
-
         $masterConfig = new MasterConfig();
         foreach ($files as $file) {
             $masterConfig->addFileConfig($file);
@@ -41,7 +45,7 @@ class MasterConfigBuilder
      * @param array $files
      * @param array $paths
      * @param bool $inVendor
-     * @return array
+     * @return FileConfig[]
      * @throws Exception\ConfigException
      * @throws LoaderException
      */
@@ -50,10 +54,9 @@ class MasterConfigBuilder
         $returnFiles = [];
 
         foreach ($files as $filename => $alias) {
-
             $fileInVendor = $inVendor;
             $data = $this->loadFile($filename, $paths);
-            $config = $this->createConfig($data, $alias);
+            $config = $this->createConfig($data, $alias, filemtime($filename));
 
             // The first time we enter the vendor directory we should flush the paths. We never want a vendor/syringe.yml
             // loading a base services.yml or similar
@@ -67,11 +70,9 @@ class MasterConfigBuilder
                 $internalPaths[] = mb_substr($filename, 0, $pos);
             }
 
-            // Inherit should never moan when it overwrites itself and should only contain parameters otherwise it's
-            // going to get very confusing, as such it has it's own separate merge
             if (!is_null($inherit = $config->getInherit())) {
                 $inherited = $this->buildFileList([$inherit => $alias], $internalPaths, $fileInVendor);
-                $config->inheritMerge($inherited[0]);
+                $returnFiles = array_merge($returnFiles, $inherited);
             }
 
             $returnFiles[] = $config;
@@ -88,9 +89,9 @@ class MasterConfigBuilder
         return $returnFiles;
     }
 
-    protected function createConfig(array $data, string $alias = null)
+    protected function createConfig(array $data, string $alias = null, int $modifiedTime)
     {
-        return new FileConfig($data, $alias);
+        return new FileConfig($data, $alias, $modifiedTime);
     }
 
 
