@@ -2,30 +2,63 @@
 
 namespace Silktide\Syringe;
 
+use Pimple\Container;
 use Silktide\Syringe\Exception\ReferenceException;
 
-class TagCollection
+class TagCollection implements \Iterator
 {
+    private $position = 0;
     protected $services = [];
+    protected $aliases = [];
+    protected $container;
 
-    public function addService($serviceName, $key = null)
+    public function __construct(Container $container, array $services)
     {
-        if (!is_string($key) || empty($key)) {
-            $key = count($this->services);
+        $this->container = $container;
+
+        foreach ($services as list("service" => $service, "alias" => $alias)) {
+            if (!is_null($alias)) {
+                $this->aliases[$alias] = count($this->services);
+            }
+            $this->services[] = $service;
         }
-        $this->services[$key] = $serviceName;
     }
 
-    public function getServices()
+    public function getServiceNames()
     {
-        return $this->services;
+        return array_values($this->services);
     }
 
-    public function getService($key)
+    public function getServiceByAlias(string $alias)
     {
-        if (empty($this->services[$key])) {
-            throw new ReferenceException("No service with the key '$key' was found in this tag");
+        if (empty($this->aliases[$alias])) {
+            throw new ReferenceException("No service with the alias '$alias' was found in this tag");
         }
-        return $this->services[$key];
+        return $this->container[$this->services[$this->aliases[$alias]]];
+    }
+
+    public function rewind()
+    {
+        $this->position = 0;
+    }
+
+    public function current()
+    {
+        return $this->container[$this->services[$this->position]];
+    }
+
+    public function key()
+    {
+        return $this->position;
+    }
+
+    public function next()
+    {
+        ++$this->position;
+    }
+
+    public function valid()
+    {
+        return isset($this->services[$this->position]);
     }
 }

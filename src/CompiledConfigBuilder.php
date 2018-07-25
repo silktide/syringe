@@ -59,8 +59,20 @@ class CompiledConfigBuilder
             }
 
             if (isset($definition["tags"])) {
-                foreach ($definition["tags"] as $tag) {
-                    $tags[$tag][] = $key;
+                foreach ($definition["tags"] as $tagKey => $value) {
+                    // Our standard tag format looks like thus:
+                    //  tags:
+                    //    - 'foo'
+                    // The alias format used to look like this
+                    //  tags:
+                    //    - 'foo': "mytag"
+                    // We normalise them here to be sane
+                    list($tag, $alias) = is_int($tagKey) ? [$value, null] : [$tagKey, $value];
+
+                    $tags[$tag][] = [
+                        "service" => $key,
+                        "alias" => $alias
+                    ];
                 }
             }
         }
