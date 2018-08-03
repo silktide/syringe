@@ -65,7 +65,6 @@ class Syringe
 
         $containerBuilder = new ContainerBuilder(new ReferenceResolver());
 
-        //$container = $config["containerObject"] ?? new $config["containerClass"];
         $container = new $config["containerClass"];
         $containerBuilder->populateContainer($container, $compiledConfig);
 
@@ -83,10 +82,6 @@ class Syringe
     protected static function validateConfig(array $config = [])
     {
         // Validate config
-
-        //if (!is_null($config["containerObject"])) {
-            //self::validateContainerClass(get_class($config["containerObject"]));
-
         if ($config["containerClass"] !== ContainerBuilder::DEFAULT_CONTAINER_CLASS) {
             self::validateContainerClass($config["containerClass"]);
         }

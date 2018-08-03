@@ -29,12 +29,18 @@ class TagCollection implements \Iterator
         return array_values($this->services);
     }
 
-    public function getServiceByAlias(string $alias)
+    public function getServiceNameByAlias(string $alias)
     {
-        if (empty($this->aliases[$alias])) {
+        if (!isset($this->aliases[$alias])) {
             throw new ReferenceException("No service with the alias '$alias' was found in this tag");
         }
-        return $this->container[$this->services[$this->aliases[$alias]]];
+
+        return $this->services[$this->aliases[$alias]];
+    }
+
+    public function getServiceByAlias(string $alias)
+    {
+        return $this->container[$this->getServiceNameByAlias($alias)];
     }
 
     public function rewind()

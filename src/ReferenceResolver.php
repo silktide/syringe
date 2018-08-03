@@ -68,6 +68,7 @@ class ReferenceResolver
 
     protected function replaceSurroundingToken(Container $container, string $parameter, string $token, callable $callable)
     {
+
         // Todo:
         // This is a good basic implementation, but it doesn't take into account the potential need to escape stuff
         // Todo: Some of these responses are bollocks, we only sometimes would require the escaping of the percent?
@@ -78,10 +79,15 @@ class ReferenceResolver
         //  - "foo\%bar%" -> "foo%bar%"
         //  - "foo\\%bar%" -> "foo\banana"
         //  - "foo\\\%bar%" -> "foo\%bar%
+
         // I think we can potentially run this
-        while (mb_substr_count($parameter, $token) > 1) {
+        $oldParameter = $parameter;
+        while (mb_substr_count($parameter, $token) > 0) {
             $pos1 = mb_strpos($parameter, $token);
             $pos2 = mb_strpos($parameter, $token, $pos1 + 1);
+            if ($pos2 === false) {
+                throw new ConfigException("An uneven number of '{$token}' token bindings exists for {$oldParameter}");
+            }
             $value = mb_substr($parameter, $pos1 + 1, $pos2 - ($pos1 + 1));
             $newValue = $callable($value);
             if (!is_string($newValue) && !is_numeric($newValue)) {
@@ -90,7 +96,7 @@ class ReferenceResolver
                 }
 
                 throw new ConfigException(
-                    "Parameter '{$value}' as part of '{$parameter}' resolved to a non-string. This is only permissible if the parameter attempts no interpolation "
+                    "Parameter '{$value}' as part of '{$oldParameter}' resolved to a non-string. This is only permissible if the parameter attempts no interpolation"
                 );
             }
 
