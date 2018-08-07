@@ -203,6 +203,9 @@ class FileConfig
         // Todo: This is kind of terrible as the regex will of course depend on the alias separator
         // If we change the separator, the regex will most likely need updated =/
         $regexSeparator = '\\' .Token::ALIAS_SEPARATOR;
+
+        // Todo: This is a gross, and a side effect of the really horrible current use of . as an alias separator
+        // Putting silktide_ here is bad
         return (preg_match("/^silktide_.*{$regexSeparator}.+$/", $key));
     }
 

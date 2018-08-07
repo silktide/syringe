@@ -55,30 +55,28 @@ class ReferenceResolver
     protected function replaceConstants(Container $container, string $parameter)
     {
         return $this->replaceSurroundingToken($container, $parameter, Token::CONSTANT_CHAR, function($value) {
-            return constant($value);
+            if (defined($value)) {
+                return constant($value);
+            }
+
+            throw new ConfigException("Referenced constant '{$value}' does not exist");
         });
     }
 
     protected function replaceEnvironment(Container $container, string $parameter)
     {
         return $this->replaceSurroundingToken($container, $parameter, Token::ENV_CHAR, function($value) {
-            return getenv($value);
+            if (($env = getenv($value)) !== false) {
+                return $env;
+            }
+
+            throw new ConfigException("Referenced environment variable '{$value}' is not set'");
         });
     }
 
     protected function replaceSurroundingToken(Container $container, string $parameter, string $token, callable $callable)
     {
-
-        // Todo:
-        // This is a good basic implementation, but it doesn't take into account the potential need to escape stuff
-        // Todo: Some of these responses are bollocks, we only sometimes would require the escaping of the percent?
-        // How would you best be meant to handle that?
-        // Some expected responses
-        // $bar = "banana"
-        //  - "foo%bar%" -> "foobanana"
-        //  - "foo\%bar%" -> "foo%bar%"
-        //  - "foo\\%bar%" -> "foo\banana"
-        //  - "foo\\\%bar%" -> "foo\%bar%
+        // Todo: A well thought out set of escaping should be added here
 
         // I think we can potentially run this
         $oldParameter = $parameter;
@@ -86,7 +84,7 @@ class ReferenceResolver
             $pos1 = mb_strpos($parameter, $token);
             $pos2 = mb_strpos($parameter, $token, $pos1 + 1);
             if ($pos2 === false) {
-                throw new ConfigException("An uneven number of '{$token}' token bindings exists for {$oldParameter}");
+                throw new ConfigException("An uneven number of '{$token}' token bindings exists for '{$oldParameter}'");
             }
             $value = mb_substr($parameter, $pos1 + 1, $pos2 - ($pos1 + 1));
             $newValue = $callable($value);

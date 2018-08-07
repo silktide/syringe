@@ -30,13 +30,14 @@ class Token
 
     /**
      * The character that identifies the boundaries of an environment variable
-     * e.g. "&myvariable&"
+     * e.g. "$myvariable$"
      */
-    const ENV_CHAR = "&";
+    const ENV_CHAR = "$";
 
     /**
      * This is a terrible choice of separator. It would be much better if this was separated by something like /
      * but that has many more things that could potentially break
+     * Todo: If we change this, we will also need to change the regex at line 205 of FileConfig
      */
     const ALIAS_SEPARATOR = ".";
 

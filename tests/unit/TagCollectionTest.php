@@ -67,7 +67,7 @@ class TagCollectionTest extends TestCase
     /**
      * @expectedException \Silktide\Syringe\Exception\ReferenceException
      */
-    public function testgetServiceNameByAliasFailure()
+    public function testGetServiceNameByAliasFailure()
     {
         $container = new Container();
         $container["service1"] = (function(){TagCollectionTest::$globalState[] = "service1"; return "service1_run";});
