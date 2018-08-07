@@ -1,0 +1,13 @@
+parameters:
+  friendly.message: "Hello, this is a friendly message!"
+
+services:
+  my.subclass:
+    class: \MySubClass
+    arguments:
+      - "%friendly.message%"
+
+  my.mainclass:
+    class: \MyMainClass
+    arguments:
+      - "@my.subclass"
