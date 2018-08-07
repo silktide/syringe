@@ -9,6 +9,8 @@ use Silktide\Syringe\Exception\ConfigException;
 
 class ReferenceResolver
 {
+    private const ESCAPED_TOKEN = "||ESCAPED_TOKEN||";
+
     public function resolveArray(Container $container, array $array)
     {
         foreach ($array as $k => $v) {
@@ -19,7 +21,7 @@ class ReferenceResolver
 
     public function resolve(Container $container, $parameter)
     {
-        if (!is_string($parameter) || mb_strlen($parameter) === 0) {
+        if (!is_string($parameter) || strlen($parameter) === 0) {
             return $parameter;
         }
 
@@ -79,13 +81,17 @@ class ReferenceResolver
 
     protected function replaceSurroundingToken(Container $container, string $parameter, string $token, callable $callable)
     {
-        // Todo: A well thought out set of escaping should be added here
-
-        // I think we can potentially run this
         $oldParameter = $parameter;
+
         while (mb_substr_count($parameter, $token) > 0) {
             $pos1 = mb_strpos($parameter, $token);
             $pos2 = mb_strpos($parameter, $token, $pos1 + 1);
+
+            if ($pos2 === $pos1 + 1) {
+                $parameter = mb_substr($parameter, 0, $pos1) . self::ESCAPED_TOKEN . mb_substr($parameter, $pos2 + 1);
+                continue;
+            }
+
             if ($pos2 === false) {
                 throw new ConfigException("An uneven number of '{$token}' token bindings exists for '{$oldParameter}'");
             }
@@ -104,6 +110,6 @@ class ReferenceResolver
             $parameter = mb_substr($parameter, 0, $pos1) . $newValue . mb_substr($parameter, $pos2 + 1);
         }
 
-        return $parameter;
+        return str_replace(self::ESCAPED_TOKEN, $token, $parameter);
     }
 }

@@ -22,6 +22,7 @@ method that takes an array of configuration options
 8. IniLoader has been removed, the format doesn't suit DI particularly nicely.
 9. Now requires PHP 7.1
 10. LoaderInterface updated, now requires typehints 
+11. We now support escaping of special tokens (environment, parameter, constant) by character repeating. e.g. a parameter value of 50% would be written as '50%%') 
 
 ## Todos:
 

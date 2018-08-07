@@ -112,8 +112,44 @@ class ReferenceResolverTest extends TestCase
     {
         $this->container["parameter_key"] = function(){return "parameter_value";};
         $this->container["parameter_key_2"] = function(){return "parameter_value_2";};
-        $array = $this->referenceResolver->resolveArray($this->container, ["foo" => "%parameter_key%", "bar" => "%parameter_key_2%"]);
+        $array = $this->referenceResolver->resolveArray($this->container, [
+            "foo" => Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR,
+            "bar" => Token::PARAMETER_CHAR . "parameter_key_2" . Token::PARAMETER_CHAR
+        ]);
         $this->assertSame(["foo" => "parameter_value", "bar" => "parameter_value_2"], $array);
+    }
+
+    public function parameterEscapedResolveProvider()
+    {
+        return [
+            [
+                "%my_key_1%",
+                "my_value_1"
+            ],
+            [
+                "%my_key_1%50%%",
+                "my_value_150%"
+            ],
+            [
+                "%%%my_key_1%",
+                "%my_value_1"
+            ],
+            [
+                "%my_key_1%%%%my_key_2%",
+                "my_value_1%my_value_2"
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider parameterEscapedResolveProvider
+     */
+    public function testParameterEscapedResolve($parameter, $expected)
+    {
+        $this->container["my_key_1"] = function(){return "my_value_1";};
+        $this->container["my_key_2"] = function(){return "my_value_2";};
+        $value = $this->referenceResolver->resolve($this->container, $parameter);
+        $this->assertSame($expected, $value);
     }
 
     /**
