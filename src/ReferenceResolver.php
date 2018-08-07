@@ -44,11 +44,14 @@ class ReferenceResolver
         return $this->replaceEnvironment($container, $parameter);
     }
 
-    // Todo: These need some serious error handling
     protected function replaceParameters(Container $container, string $parameter)
     {
         return $this->replaceSurroundingToken($container, $parameter, Token::PARAMETER_CHAR, function($value) use ($container) {
-            return $container->offsetGet($value);
+            if ($container->offsetExists($value)) {
+                return $container->offsetGet($value);
+            }
+
+            throw new ConfigException("Referenced parameter '{$value}' does not exist");
         });
     }
 

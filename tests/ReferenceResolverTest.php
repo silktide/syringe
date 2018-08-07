@@ -6,6 +6,7 @@ namespace Silktide\Syringe\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Pimple\Container;
+use Silktide\Syringe\Exception\ConfigException;
 use Silktide\Syringe\ReferenceResolver;
 use Silktide\Syringe\Token;
 
@@ -89,6 +90,14 @@ class ReferenceResolverTest extends TestCase
         $this->container["parameter_key"] = function(){return "parameter_value";};
         $value = $this->referenceResolver->resolve($this->container, Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR);
         $this->assertEquals("parameter_value", $value);
+    }
+
+    /**
+     * @expectedException \Silktide\Syringe\Exception\ConfigException
+     */
+    public function testFailedParameterResolve()
+    {
+        $this->referenceResolver->resolve($this->container, Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR);
     }
 
     public function testRecursiveParameterResolve()

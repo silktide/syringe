@@ -200,7 +200,8 @@ class FileConfig
 
     protected function isAliased(string $key)
     {
-        return (preg_match("/^.*".Token::ALIAS_SEPARATOR.".+$/", $key));
+        return mb_strpos($key, Token::ALIAS_SEPARATOR) !== false;
+        //return (preg_match("/^.*".Token::ALIAS_SEPARATOR.".+$/", $key));
     }
 
     protected function recursivelyAlias($value)
