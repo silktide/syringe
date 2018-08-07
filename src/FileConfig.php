@@ -156,13 +156,21 @@ class FileConfig
                 }
             }
 
-            if (!empty($definition["aliasOf"]) || !empty($definition["abstract"])) {
+            // We don't validate if we're aliasing or if this is just an abstract function
+            if (!empty($definition["aliasOf"])) {
+                if (mb_substr($definition["aliasOf"], 0, 1) !== "@") {
+                    throw new ConfigException("AliasOf expects a service prefixed with @");
+                }
+                continue;
+            }
+
+            if (!empty($definition["abstract"])) {
                 continue;
             }
 
             // Validate classes
             if (empty($definition["class"])) {
-                throw new ConfigException(sprintf("The service definition for '%s' does not have a class", $serviceName));
+                throw new ConfigException("The service definition for '{$serviceName}' does not have a class");
             }
 
             if (!class_exists($definition["class"]) && !interface_exists($definition["class"])) {
@@ -173,17 +181,27 @@ class FileConfig
             if (!empty($definition["factoryMethod"])) {
                 // If factoryMethod is set, then it must have either a factoryClass OR a factoryService, not both
                 if (!(isset($definition["factoryClass"]) xor isset($definition["factoryService"]))) {
-                    throw new ConfigException(sprintf("The service definition for '%s' should ONE of a factoryClass or a factoryService.", $serviceName));
+                    throw new ConfigException("The service definition for '{$serviceName}' should ONE of a factoryClass or a factoryService.");
                 }
             }
 
-            if (isset($definition["factoryClass"]) && !class_exists($definition["factoryClass"])) {
-                throw new ConfigException("Class: '{$definition["factoryClass"]}' was referenced but does not exist'");
+            if (isset($definition["factoryService"])) {
+                if (strlen($definition["factoryService"]) === 0) {
+                    throw new ConfigException("Service '{$serviceName}' references a factoryService but doesn't provide one");
+                }
             }
 
-            if (isset($definition["factoryService"])) {
-                if (mb_strlen($definition["factoryService"]) === 0) {
-                    throw new ConfigException("Service '{$serviceName}' references a factoryService but doesn't provide one");
+            if (!empty($definition["factoryClass"])) {
+                if (!class_exists($definition["factoryClass"])) {
+                    throw new ConfigException("Service '{$serviceName}' has a factoryClass of '{$definition["factoryClass"]}' which does not exist");
+                }
+
+                if (empty($definition["factoryMethod"])) {
+                    throw new ConfigException("Service '{$serviceName}' uses a factoryClass but does not define a factoryMethod");
+                }
+
+                if (!method_exists($definition["factoryClass"], $definition["factoryMethod"])) {
+                    throw new ConfigException("Service '{$serviceName}' uses a method of '{$definition["factoryMethod"]}' which does not exist");
                 }
             }
         }

@@ -8,19 +8,20 @@ Syringe allows a [Pimple](https://github.com/silexphp/pimple) DI container to be
  
 ## BC's
 
-Syringe 2.0 is pretty much an 100% rewrite, the functionality should remain more or less the same but the code behind it is vastly vastly different. As such, there are a few BC's:
+Syringe 2.0 is pretty much an 100% rewrite, the functionality should remain more or less the same but the code behind it is vastly vastly different.
+As such, there are quite a few BC's as I feel it's better to BC once and hard rather than repeatedly
 
-- Aliases are now denoted through `::` rather than `.`. This makes verifying whether something is aliased so much more clean
-- TagCollection has been reworked to implement an iterator. This means that when we inject a tag in like so: '#collection', it will now return an iterable object instead of an array. This means that we will only build services if and when they are needed. We can still get information about the serviceNames on a TagCollection using `->getServiceNames`
-- The container is now originally updated using `Syringe::build([])`. Instead of chaining several slightly non-intuitive internal classes as the end user, we now provide a static
+1. Aliases are now denoted through `::` rather than `.`. This makes verifying whether something is aliased so much more clean
+2. TagCollection has been reworked to implement an iterator. This means that when we inject a tag in like so: '#collection', it will now return an iterable object instead of an array. This means that we will only build services if and when they are needed. We can still get information about the serviceNames on a TagCollection using `->getServiceNames`
+3. The container is now originally updated using `Syringe::build([])`. Instead of chaining several slightly non-intuitive internal classes as the end user, we now provide a static
 method that takes an array of configuration options
-- Containers are now always generated as part of Syringe rather than exposing populating an existing container.
-- Files that inherit from each other will now throw exceptions if they overwrite each others services. A new parameter `override` has been added to services. If you are adding a service into the container and are well aware of the fact that it will overwrite an existing service you can set the `override` flag and it will not throw an error.
-- Private services have been removed, in practice they added nothing useful but complicated affairs. 
-- Environment variables are no longer injected through prefixing parameters with `SYRINGE__FOO` as this was a bit clunky and the wrong way around to do it. A new token of `&` means we can inject environment variables as parameters like so `&foo&`
-- IniLoader has been removed, the format doesn't suit DI particularly nicely.
-- Now requires PHP 7.1
-- LoaderInterface updated, now requires typehints 
+4. Containers are now always generated as part of Syringe rather than exposing populating an existing container.
+5. Files that inherit from each other will now throw exceptions if they overwrite each others services. A new parameter `override` has been added to services. If you are adding a service into the container and are well aware of the fact that it will overwrite an existing service you can set the `override` flag and it will not throw an error.
+6. Private services have been removed, in practice they added nothing useful but complicated affairs. 
+7. Environment variables are no longer injected through prefixing parameters with `SYRINGE__FOO` as this was a bit clunky and the wrong way around to do it. A new token of `&` means we can inject environment variables as parameters like so `&foo&`
+8. IniLoader has been removed, the format doesn't suit DI particularly nicely.
+9. Now requires PHP 7.1
+10. LoaderInterface updated, now requires typehints 
 
 ## Todos:
 
