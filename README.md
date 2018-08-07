@@ -10,6 +10,7 @@ Syringe allows a [Pimple](https://github.com/silexphp/pimple) DI container to be
 
 Syringe 2.0 is pretty much an 100% rewrite, the functionality should remain more or less the same but the code behind it is vastly vastly different. As such, there are a few BC's:
 
+- Aliases are now denoted through `::` rather than `.`. This makes verifying whether something is aliased so much more clean
 - TagCollection has been reworked to implement an iterator. This means that when we inject a tag in like so: '#collection', it will now return an iterable object instead of an array. This means that we will only build services if and when they are needed. We can still get information about the serviceNames on a TagCollection using `->getServiceNames`
 - The container is now originally updated using `Syringe::build([])`. Instead of chaining several slightly non-intuitive internal classes as the end user, we now provide a static
 method that takes an array of configuration options

@@ -39,6 +39,6 @@ class Token
      * but that has many more things that could potentially break
      * Todo: If we change this, we will also need to change the regex at line 205 of FileConfig
      */
-    const ALIAS_SEPARATOR = ".";
+    const ALIAS_SEPARATOR = "::";
 
 }

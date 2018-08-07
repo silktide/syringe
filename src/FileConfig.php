@@ -200,13 +200,7 @@ class FileConfig
 
     protected function isAliased(string $key)
     {
-        // Todo: This is kind of terrible as the regex will of course depend on the alias separator
-        // If we change the separator, the regex will most likely need updated =/
-        $regexSeparator = '\\' .Token::ALIAS_SEPARATOR;
-
-        // Todo: This is a gross, and a side effect of the really horrible current use of . as an alias separator
-        // Putting silktide_ here is bad
-        return (preg_match("/^silktide_.*{$regexSeparator}.+$/", $key));
+        return (preg_match("/^.*".Token::ALIAS_SEPARATOR.".+$/", $key));
     }
 
     protected function recursivelyAlias($value)
@@ -227,7 +221,7 @@ class FileConfig
                     $pos1 = mb_strpos($value, Token::PARAMETER_CHAR);
                     $pos2 = mb_strpos($value, Token::PARAMETER_CHAR, $pos1 + 1);
 
-                    $placeholder = '||£'.$n.'£||';
+                    $placeholder = '|||'.$n.'|||';
 
                     $replacements[$placeholder] =
                         Token::PARAMETER_CHAR .

@@ -37,7 +37,8 @@ class CompiledConfigBuilder
                 continue;
             }
 
-            if (!empty($definition["extends"])) {
+            // We allow a service to extend an abstract service which extends an abstract service
+            while (!empty($definition["extends"])) {
                 $abstractKey = mb_substr($definition["extends"], 1);
                 if (!isset($abstractServices[$abstractKey])) {
                     $errorMessage = "The service definition for '%s' extends '%s' but there is no abstract definition of that name";
@@ -45,8 +46,13 @@ class CompiledConfigBuilder
                 }
 
                 $abstractDefinition = $abstractServices[$abstractKey];
+                unset($definition["extends"]);
 
                 foreach ($abstractDefinition as $abstractKey => $value) {
+                    if ($abstractKey === "abstract") {
+                        continue;
+                    }
+
                     if (isset($definition[$abstractKey])) {
                         if ($abstractKey === "calls") {
                             $definition[$abstractKey] = array_merge($definition[$abstractKey], $value);
