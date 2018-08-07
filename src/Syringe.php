@@ -22,12 +22,6 @@ class Syringe
             "paths" => [getcwd() . "/config"],
             "files" => ["syringe.yml"],
             "containerClass" => ContainerBuilder::DEFAULT_CONTAINER_CLASS,
-            // The functionality is easy to reimplement, but for reasons of forward compatibility, unless there's a
-            // strong need I'm not going to implement the ability to populate a containerObject yet.
-
-            // This is primarily because I believe doing so will strongly hinder my ability to add autowiring without
-            // causing another BC
-            //"containerObject" => null,
             "cache" => null
         ];
 
