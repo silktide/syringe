@@ -1,5 +1,0 @@
-imports:
-  - "imported.yml"
-
-parameters:
-  foo: bar

@@ -9,23 +9,17 @@ use Symfony\Component\Yaml\Yaml;
 
 class YamlLoader implements LoaderInterface
 {
-    protected $useSymfony = false;
+    protected $forceSymfony;
 
-    /**
-     * YamlLoader constructor.
-     * @param bool $forceSymfony
-     */
-    public function __construct($forceSymfony = false)
+    public function __construct(bool $useSymfony = false)
     {
-        if ($forceSymfony || !function_exists("yaml_parse")) {
-            $this->useSymfony = true;
-        }
+        $this->forceSymfony = $useSymfony;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function getName()
+    public function getName() : string
     {
         return "YAML Loader";
     }
@@ -33,7 +27,7 @@ class YamlLoader implements LoaderInterface
     /**
      * {@inheritDoc}
      */
-    public function supports($file)
+    public function supports(string $file) : bool
     {
         return (in_array(pathinfo($file, PATHINFO_EXTENSION), ["yml", "yaml"]));
     }
@@ -42,20 +36,18 @@ class YamlLoader implements LoaderInterface
      * {@inheritDoc}
      * @throws \Silktide\Syringe\Exception\LoaderException
      */
-    public function loadFile($file)
+    public function loadFile(string $file) : array
     {
-        if ($this->useSymfony) {
-            try {
-                if (!file_exists($file)) {
-                    throw new LoaderException("Requested YAML file '{$file}' doesn't exist");
-                }
-                return Yaml::parse(file_get_contents($file));
-            } catch (ParseException $e) {
-                throw new LoaderException("Could not load the YAML file '{$file}': ".$e->getMessage());
-            }
+        if (!file_exists($file)) {
+            throw new LoaderException("Requested YAML file '{$file}' doesn't exist");
         }
 
-        $data = yaml_parse_file($file);
+        if (!$this->forceSymfony && function_exists("yaml_parse_file")) {
+            $data = yaml_parse_file($file);
+        } else {
+            $data = Yaml::parseFile($file);
+        }
+
         if (!is_array($data)) {
             throw new LoaderException("Requested YAML file '{$file}' does not parse to an array");
         }

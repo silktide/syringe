@@ -1,2 +1,0 @@
-parameters:
-  my_api_key: "%dependency.api_key%"

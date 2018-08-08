@@ -4,6 +4,35 @@ Syringe allows a [Pimple](https://github.com/silexphp/pimple) DI container to be
 
 ``composer require silktide/syringe``
 
+# Changes with Version 2.0
+ 
+## Improvements
+
+1. We can now cache the built container, saving lots of time on startup
+2. Tokens can now be escaped by repeating them (50% could be written as "50%%" as a parameter)
+3. Environment variables can be referenced using a $ token
+4. There's unit tests :D
+5. Multibyte support. I haven't done thorough testing, but we now use multibyte safe functions throughout
+
+## BC's
+
+Syringe 2.0 is pretty much an 100% rewrite, the functionality should remain more or less the same but the code behind it is vastly vastly different.
+As such, there are quite a few BC's as I feel it's better to BC once and hard rather than repeatedly
+
+1. Now requires PHP 7.1
+2. Aliases are now denoted through `::` rather than `.`. This makes verifying whether something is aliased so much more clean
+3. TagCollection has been reworked to implement an iterator. This means that when we inject a tag in like so: '#collection', it will now return an iterable object instead of an array. This means that we will only build services if and when they are needed. We can still get information about the serviceNames on a TagCollection using `->getServiceNames`
+4. The container is now originally updated using `Syringe::build([])`. Instead of chaining several slightly non-intuitive internal classes as the end user, we now provide a static
+method that takes an array of configuration options
+5. Containers are now always generated as part of Syringe rather than exposing populating an existing container.
+6. Files that inherit from each other will now throw exceptions if they overwrite each others services. A new parameter `override` has been added to services. If you are adding a service into the container and are well aware of the fact that it will overwrite an existing service you can set the `override` flag and it will not throw an error.
+7. Private services have been removed, in practice they added nothing useful but complicated affairs. 
+8. Environment variables are no longer injected through prefixing parameters with `SYRINGE__FOO` as this was a bit clunky and the wrong way around to do it. A new token of `&` means we can inject environment variables as parameters like so `&foo&`
+9. IniLoader has been removed, the format doesn't suit DI particularly nicely. 
+10. LoaderInterface updated, now requires typehints 
+11. We now support escaping of special tokens (environment, parameter, constant) by character repeating. e.g. a parameter value of 50% would be written as '50%%') 
+12. As we've added a token for environment variables, any uses of $ in parameters will need to be escaped (like so: "I paid $$50 for this shirt")
+
 # Getting Started
 
 The simplest method to create and set up a new Container is to use the `Silktide\Syringe\Syringe` class. It requires the path to the application directory and a list of filepaths that are relative to that directory
@@ -11,18 +40,48 @@ The simplest method to create and set up a new Container is to use the `Silktide
 ```php
 use Silktide\Syringe\Syringe;
 
-$appDir = __DIR__;
-$configFiles = [
-    "config/syringe.yml" // add paths to your configuration files here
-];
-
-Syringe::init($appDir, $configFiles);
-$container = Syringe::createContainer();
+$container = \Silktide\Syringe\Syringe::build([
+	"files" => ["config/syringe.yml"]
+]);
 ```
+
+## Flow
+
+The code is hopefully relatively self explanatory with this version, but a basic rundown of the flow of the library for anyone trying to do future maintenance on it.
+
+`Syringe::build` is the entrypoint in the library which deals with the configuration aspect.
+
+`MasterConfigBuilder` takes the list of files and paths that we'll want to load from and recursively parses the files to build up a in-order list of `FileConfig`'s, which represent each config file we've been asked to load either through the initial config, imports or inherits.
+
+These are then merged into a MasterConfig.php, which handles merging any services together based on their weight, a property decided based on whether the key was loaded from an aliased File.
+
+The `MasterConfig` is then passed into the `CompiledConfigBuilder` which handles aliasing, the building of tags and the merging of abstract configurations. 
+
+Finally the `CompiledConfig` is passed into a `ContainerBuilder` which handles populating the `Pimple\\Container`
+
+
+# Key Production Configuration
+
+When used in production, you should pass a PSR-16 cache interface (preferably as a cache parameter), like so:
+
+```php
+use Silktide\Syringe\Syringe;
+
+$container = \Silktide\Syringe\Syringe::build([
+	"cache" => new FileCache(sys_get_temp_dir())
+]);
+```
+
+The most computationally expensive part of Syringe (certainly when using many syringe based libraries) is:
+	1. the aliasing of the different parameters and
+	2. the validating of the classes/methods inside the configuration files
+
+By passing in the `cache` parameter we cache the generated CompiledConfig and use that instead. This leads to much, much faster code (takes about 7% of the time)
+
 
 # Configuration Files
 
-By default, Syringe allows config files to be in JSON or YAML format. Each file can define parameters, services and tags to inject into the container, and these entities can be referenced in other areas of configuration.
+By default, Syringe allows config files to be in JSON, YAML or PHP format. Each file can define parameters, services and tags to inject into the container, and these entities can be referenced in other areas of configuration.
 
 ## Parameters
 
@@ -152,7 +211,7 @@ services:
             - "#logHandlers"
 ```
 
-When the tag is resolved, the collection is passed through as a simple numeric array. The parent service will have no knowledge that a tag was used to generate this list.
+When the tag is resolved, the collection is passed through as TagCollection, which can be used as an iterator. This should be typehinted against iterator, *not* TagCollection unless you're certain you know what you're doing.
 
 ### Factories
 
@@ -228,20 +287,6 @@ services:
         extends: "@factoriedService"    # imports both the factory config and the "setLogger" call
 ```
 
-### Private Services
-
-For the vast majority of cases, there is no issue with services being accessed from outside of the current module. In fact this is advantageous as it promotes modular design, reuse of services and code discovery. However, there can be times when data security requires that a service be locked down and to not be available to anything outside of the control of the current module.
-Services can be marked as private by adding the `private` key to their definition:
-
-```yml
-services:
-    myService:
-        ...
-        private: true
-```
-
-Private services will only be available to other services that are defined with the same config alias, usually within the same module.
-
 ## Imports
 
 When your object graph becomes large enough, it is often useful to split your configuration into separate files; keeping related parameters and services together. This can be done by using the `imports` key:
@@ -277,7 +322,7 @@ parameters:
 ## Environment Variables
 
 If required, Syringe allows you to set environment variables on the server that will be imported at runtime. This can be used to set different parameter values for local development machines and production servers, for example.
-Any environment variable prefixed with `SYRINGE__` will be imported as a parameter:
+They can be injected similar to parameters using the token of `&` like `&myvar&` so
 
 ## Config Aliases and Namespacing
 
@@ -327,6 +372,7 @@ In order to identify references, the following characters are used:
 * `%` - Parameters
 * `#` - Tags
 * `^` - Constants
+* `&` - Environment Variables
 
 ## Conventions
 
@@ -345,67 +391,48 @@ services:
 
 # Advanced Usage
 
-## The ContainerBuilder
-
-The `ContainerBuilder` class is the main component of Syringe. It has several configuration options that allow you to customise the containers it builds.
-
 ### Base paths for config files
 
-In order to use configuration in a particular file, its filepath must be passed to the `ContainerBuilder`, which will use the loading system to convert a file into a PHP array. Syringe uses absolute paths when loading files, but this is obviously not ideal when you're passing config filepaths to the `ContainerBuilder`. 
+In order to use configuration in a particular file, its filepath must be passed to the `ContainerBuilder`, which will use the loading system to convert a file into a PHP array. Syringe uses absolute paths when loading files, but this is obviously not ideal when you're passing config filepaths.
 
-In order to get around this, the `ContainerBuilder` allows you to set a path or collection of paths to use as a base, so you can use relative filepaths when setting it up. For example, for a config file with absolute path of `/var/www/app/config/syringe.yml`, you could set a base path of `/var/www/app` and use `config/syringe.yml` as the relative filepath.
+In order to get around this, you can add additional paths to the configuration array. For example, for a config file with absolute path of `/var/www/app/config/syringe.yml`, you could set a base path of `/var/www/app` and use `config/syringe.yml` as the relative filepath.
 
 ```php
-$basePath = "/var/www/app";
-$resolver = new Silktide\Syringe\ReferenceResolver();
-
-$builder = new Silktide\Syringe\ContainerBuilder($resolver, [$basePath]);
-$builder->addConfigfile("config/syringe.yml");
-...
+$container = \Silktide\Syringe\Syringe::build([
+   "paths" => ["/var/www/app"]
+	"files" => ["config/syringe.yml"]
+]);
 ```
 
 If you use several base paths, Syringe will look for a config file in each base path in turn, so the order is important.
 
-```php
-$basePaths = [
-    "my-dir/config",    // both these paths contain a file called "foo.yml"
-    "my-dir/app"
-];
-$resolver = new Silktide\Syringe\ReferenceResolver();
-
-$builder = new Silktide\Syringe\ContainerBuilder($resolver, $basePaths);
-$builder->addConfigfile("foo.yml");     // will load my-dir/config/foo.yml, as that is the first base path in the list
-```
-
 ### Application root directory
 
 If you have services that deal with files, it can be very useful to have the base directory of the application as a parameter in DI config, so you can be sure any relative paths you use are correct.
-The `ContainerBuilder` allows you to set the base directory and the parameter name at runtime:
 
 ```php
-$builder->setApplicationRootDirectory("my/application/directory", "myParameterName");
+$container = \Silktide\Syringe\Syringe::build([
+   "appDir" => "my/application/directory", # Application Directory
+   "appDirKey" => "myAppParameterKey"
+]);
 ```
-
-If no key is passed, the default parameter name is `app.dir`.
+If no app directory key is passed, the default parameter name is `app.dir`.
 
 ### Container class
 
 Some projects that use Pimple, such a [Silex](http://silex.sensiolabs.org/), extend the `Container` class to add functionality to their API. Syringe can create custom containers in this way by allowing you to set the container class it instantiates:
 
 ```php
-$builder->setContainerClass(Silex\Application::class);
-$app = $builder->createContainer(); // returns a new Silex Application
+$container = \Silktide\Syringe\Syringe::build([
+   "containerClass" => "Silex\Application::class"
+]);
 ```
 
 ### Loaders
 
 Syringe can support any data format that can be translated into a nested PHP array. Each config file is processed by the loader system, which is comprised of a series of `Loader` objects, each handling a single data format, that take a file's contents and decode it into an array of configuration.
 
-By default the `ContainerBuilder` has no loaders, so you need to add at least one before a container can be built:
-
-```php
-$builder->addLoader(new Silktide\Syringe\Loader\YamlLoader());
-```
+By default the `ContainerBuilder` loads the PHPLoader, the YamlLoader and the JsonLoader
 
 #### Custom loaders
 
@@ -436,77 +463,11 @@ class XmlLoader implements LoaderInterface
 }
 ```
 
-Once created, such a loader can be used by adding it to the `ContainerBuilder` in the normal way.
-
-### Populating a Container
-
-In addition to creating a new container, the `ContainerBuilder` can also populate an existing container that has been created elsewhere, with the `populateContainer` method:
-
-```php
-$container = new Pimple\Container();
-$builder->populateContainer($contianer);
-```
-
-### Method reference
-
-The `ContainerBuilder` class has the following methods available:
-
-#### Constructor
-
-* `__construct(Silktide\Syringe\ReferenceResolver $resolver, array $configPaths = [])`
-  
-  Constructs a new `ContainerBuilder` instance, with each $configPath set using the `addConfigPath` method
-
-#### Container
-
-* `createContainer()`
-
-  Create a brand new container populated with all services defined in the configuration files that have been loaded into the `ContainerBuilder`
-* `populateContainer(Pimple\Container $container)`
-
-  Populate an existing container with services as per `createContainer`
-* `setContainerClass($className)`
-
-  Sets the class which will be instantiated when using `createContainer`
-
-#### Config Files
-
-* `addConfigFile($file, $alias = "")`
-
-  Adds a new file path to load configuration from, optionally with an alias to prefix its keys with
-* `addConfigFiles(array $files)`
-
-  Adds several config files in one go. Elements with numeric keys are added without an alias, otherwise the key is used as the alias for that file:
-```php
-  $files = [
-      "file1.yml",
-      "alias_two" => "file2.yml",
-      "file3.yml",
-      "alias_four" => "file4.yml"
-  ]
-```
-* `addConfigPath($path)`
-
-  Register a path to use as a base for relative config filepaths
-  
-#### Loaders
-
-* `addLoader(Silktide\Syringe\Loader\LoaderInterface $loader)`
-
-  Registers a loader to add support for a specific data format
-* `removeLoader($name)`
-
-  Remove a loader based on its name
-* `removeLoaderByFile($file)`
-
-  Remove any loader that supports this file
-  
-#### Misc
-
-* `setApplicationRootDirectory($path, $key = "")`
-
-  Sets the directory to use as the root for this application, useful when processing relative file paths. The parameter name will be the $key, or `app.dir` if $key is empty
+Once created, such a loader can be used by overwriting `$config["loaders"] = [new XmlLoader()]`
 
 # Credits
 
-Written by Danny Smart (dannysmart@silktide.com).
+Written by:
+
+ - Doug Nelson (dougnelson@silktide.com)
+ - Danny Smart (dannysmart@silktide.com).
