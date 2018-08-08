@@ -30,7 +30,7 @@ class FileConfig
     ];
 
     protected $keys = [];
-    protected $alias = null;
+    protected $namespace = null;
     protected $imports = [];
     protected $inherit = null;
 
@@ -38,10 +38,10 @@ class FileConfig
     protected $services = [];
     protected $extensions = [];
 
-    public function __construct(array $data = [], string $alias = null)
+    public function __construct(array $data = [], string $namespace = null)
     {
         $this->keys = array_keys($data);
-        $this->alias = $alias;
+        $this->namespace = $namespace;
         $this->imports = $data["imports"] ?? [];
         $this->inherit = $data["inherit"] ?? null;
 
@@ -51,16 +51,16 @@ class FileConfig
     }
 
 
-    protected function calculateWeight(string $key, string $aliased)
+    protected function calculateWeight(string $key, string $namespaced)
     {
-        // If we're in a non-aliased file, then this will be the config we value most and should execute last
-        if (is_null($this->alias)) {
+        // If we're in a non-namespaced file, then this will be the config we value most and should execute last
+        if (is_null($this->namespace)) {
             return 10;
         }
 
         // If the key equals the aliased key, then it was already aliased. This probably means that it was applied
         // in a mid-repo and thus should be given second priority
-        if ($key === $aliased) {
+        if ($key === $namespaced) {
             return 5;
         }
 
@@ -99,43 +99,43 @@ class FileConfig
         return $this->inherit;
     }
 
-    public function getAliasedParameters()
+    public function getNamespacedParameters()
     {
         $return = [];
         foreach ($this->parameters as $k => $value) {
-            $aliased = $this->alias($k);
+            $namespaced = $this->namespace($k);
             $return[] = [
-                "name" => $aliased,
-                "weight" => $this->calculateWeight($k, $aliased),
-                "value" => $this->recursivelyAlias($value)
+                "name" => $namespaced,
+                "weight" => $this->calculateWeight($k, $namespaced),
+                "value" => $this->recursivelyNamespace($value)
             ];
         }
         return $return;
     }
 
-    public function getAliasedServices()
+    public function getNamespacedServices()
     {
         $return = [];
         foreach ($this->services as $k => $value) {
-            $aliased = $this->alias($k);
+            $namespaced = $this->namespace($k);
             $return[] = [
-                "name" => $aliased,
-                "weight" => $this->calculateWeight($k, $aliased),
-                "value" => $this->recursivelyAlias($value)
+                "name" => $namespaced,
+                "weight" => $this->calculateWeight($k, $namespaced),
+                "value" => $this->recursivelyNamespace($value)
             ];
         }
         return $return;
     }
 
-    public function getAliasedExtensions(bool $self = false)
+    public function getNamespacedExtensions(bool $self = false)
     {
         $return = [];
         foreach ($this->extensions as $k => $value) {
-            $aliased = $this->alias($k);
+            $namespaced = $this->namespace($k);
             $return[] = [
-                "name" => $aliased,
-                "weight" => $this->calculateWeight($k, $aliased),
-                "value" => $this->recursivelyAlias($value)
+                "name" => $namespaced,
+                "weight" => $this->calculateWeight($k, $namespaced),
+                "value" => $this->recursivelyNamespace($value)
             ];
         }
         return $return;
@@ -208,31 +208,30 @@ class FileConfig
     }
 
 
-    protected function alias(string $string)
+    protected function namespace(string $string)
     {
-        if (is_null($this->alias) || $this->isAliased($string)) {
+        if (is_null($this->namespace) || $this->isNamespaced($string)) {
             return $string;
         }
-        return $this->alias . Token::ALIAS_SEPARATOR . $string;
+        return $this->namespace . Token::NAMESPACE_SEPARATOR . $string;
     }
 
-    protected function isAliased(string $key)
+    protected function isNamespaced(string $key)
     {
-        return mb_strpos($key, Token::ALIAS_SEPARATOR) !== false;
-        //return (preg_match("/^.*".Token::ALIAS_SEPARATOR.".+$/", $key));
+        return mb_strpos($key, Token::NAMESPACE_SEPARATOR) !== false;
     }
 
-    protected function recursivelyAlias($value)
+    protected function recursivelyNamespace($value)
     {
         if (is_array($value)) {
             $return = [];
             foreach ($value as $k => $v) {
-                $return[$k] = $this->recursivelyAlias($v);
+                $return[$k] = $this->recursivelyNamespace($v);
             }
             return $return;
         } elseif (strlen($value) > 0) {
             if ($value[0] === Token::SERVICE_CHAR) {
-                return Token::SERVICE_CHAR . $this->alias(mb_substr($value, 1));
+                return Token::SERVICE_CHAR . $this->namespace(mb_substr($value, 1));
             } elseif (mb_strpos($value, Token::PARAMETER_CHAR) !== false) {
                 $replacements = [];
                 $n = 0;
@@ -244,7 +243,7 @@ class FileConfig
 
                     $replacements[$placeholder] =
                         Token::PARAMETER_CHAR .
-                        $this->alias(mb_substr($value, $pos1 + 1, $pos2 - ($pos1 + 1))) .
+                        $this->namespace(mb_substr($value, $pos1 + 1, $pos2 - ($pos1 + 1))) .
                         Token::PARAMETER_CHAR;
 
                     $value = mb_substr($value, 0, $pos1) . $placeholder . mb_substr($value, $pos2 + 1);

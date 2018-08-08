@@ -13,7 +13,7 @@ Syringe allows a [Pimple](https://github.com/silexphp/pimple) DI container to be
 3. Environment variables can be referenced using a $ token
 4. There's unit tests :D
 5. Multibyte support. I haven't done thorough testing, but we now use multibyte safe functions throughout
-6. Multiple files can share the same alias like so: `{"my-alias":["service1.json", "service2.json"]}`
+6. Multiple files can share the same namespace like so: `{"my-namespace":["service1.json", "service2.json"]}`
 
 ## BC's
 
@@ -54,7 +54,7 @@ The code is hopefully relatively self explanatory with this version, but a basic
 
 `MasterConfigBuilder` takes the list of files and paths that we'll want to load from and recursively parses the files to build up a in-order list of `FileConfig`'s, which represent each config file we've been asked to load either through the initial config, imports or inherits.
 
-These are then merged into a MasterConfig.php, which handles merging any services together based on their weight, a property decided based on whether the key was loaded from an aliased File.
+These are then merged into a MasterConfig.php, which handles merging any services together based on their weight, a property decided based on whether the key was loaded from an namespaced File.
 
 The `MasterConfig` is then passed into the `CompiledConfigBuilder` which handles aliasing, the building of tags and the merging of abstract configurations. 
 
@@ -74,7 +74,7 @@ $container = \Silktide\Syringe\Syringe::build([
 ```
 
 The most computationally expensive part of Syringe (certainly when using many syringe based libraries) is:
-	1. the aliasing of the different parameters and
+	1. the namespacing of the different parameters and
 	2. the validating of the classes/methods inside the configuration files
 
 By passing in the `cache` parameter we cache the generated CompiledConfig and use that instead. This leads to much, much faster code (takes about 7% of the time)
@@ -327,20 +327,20 @@ They can be injected similar to parameters using the token of `&` like `&myvar&`
 
 ## Config Aliases and Namespacing
 
-When dealing with a large object graph, conflicting service names can become an issue. To avoid this, Syringe allows you to set an "alias" or namespace for a config file. Within the file, services can be referenced as normal, but files which use different aliases or no alias need to prefix the service name with the alias.
+When dealing with a large object graph, conflicting service names can become an issue. To avoid this, Syringe allows you to set an namespace for a config file. Within the file, services can be referenced as normal, but files which use different namespaces or no namespace need to prefix the service name with the namespace.
 This allows you to compartmentalise your DI config for better organisation and to promote modular coding.
 
-For example, the two config files, `foo.yml` and `bar.yml` can be given aliases when setting up the config files to create a Container from:
+For example, the two config files, `foo.yml` and `bar.yml` can be given namespaces when setting up the config files to create a Container from:
 
 ```php
 $configFiles = [
-  "foo_alias" => "foo.yml",
-  "bar_alias" => "bar.yml"
+  "foo_namespace" => "foo.yml",
+  "bar_namespace" => "bar.yml"
 ];
 ```
 
 `foo.yml` could defined a service, `fooOne`, which injected another service in the same file, `fooTwo`, as normal.
-However, if a service in `bar.yml` wanted to inject `fooTwo`, it would have to use its full service reference `@foo_alias.fooTwo`. Likewise if `fooOne` wanted to inject `barOne` from `bar.yml` it would have to use `@bar_alias.barOne` as the service reference.
+However, if a service in `bar.yml` wanted to inject `fooTwo`, it would have to use its full service reference `@foo_namespace.fooTwo`. Likewise if `fooOne` wanted to inject `barOne` from `bar.yml` it would have to use `@bar_namespace.barOne` as the service reference.
 
 ## Extensions
 
@@ -348,7 +348,7 @@ There can be times where you need to call setters on a dependent module's servic
 In order to do this, you need to use the `extensions` key. This allows you to specify the service and provide a list of calls to make on it, essentially appending them to the service's own `calls` key
 
 ```yml
-# [foo.yml, aliased with "foo_alias"]
+# [foo.yml, namespaced with "foo_namespace"]
 services:
     myService:
         class: MyModule\MyService
@@ -360,7 +360,7 @@ services:
         ...
         
 extensions:
-    foo_alias.myService:
+    foo_namespace.myService:
         - method: "addLogger"
           arguments: "@myCustomLogger"
 ```
@@ -377,7 +377,7 @@ In order to identify references, the following characters are used:
 
 ## Conventions
 
-Syringe does not enforce naming or style conventions, with one exception. A service's name can be any you like, as long as it does not start with one of the reference characters, but a config alias is always seperated from a service name with a `.`, e.g. `myAlias.serviceName`. For this reason it can be useful to use `.` as a separator in your own service names, to "namespace" related services and parameters:
+Syringe does not enforce naming or style conventions, with one exception. A service's name can be any you like, as long as it does not start with one of the reference characters, but a config namespace is always seperated from a service name with a `::`, e.g. `myAlias::serviceName`, as such, this should be avoided in any service/parameter names
 
 ```yml
 parameters:

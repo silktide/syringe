@@ -53,8 +53,8 @@ class MasterConfigBuilder
     protected function buildFileList(array $files = [], array $paths, bool $inVendor = false) : array
     {
         $returnFiles = [];
-        foreach ($files as $alias => $filenames) {
-            $alias = !is_int($alias) && !empty($alias) ? $alias : null;
+        foreach ($files as $namespace => $filenames) {
+            $namespace = !is_int($namespace) && !empty($namespace) ? $namespace : null;
             $fileInVendor = $inVendor;
 
             if (!is_array($filenames)) {
@@ -63,7 +63,7 @@ class MasterConfigBuilder
 
             foreach ($filenames as $filename) {
                 $data = $this->loadFile($filename, $paths);
-                $config = $this->createConfig($data, $alias);
+                $config = $this->createConfig($data, $namespace);
 
                 // The first time we enter the vendor directory we should flush the paths. We never want a vendor/syringe.yml
                 // loading a base services.yml or similar
@@ -78,14 +78,14 @@ class MasterConfigBuilder
                 }
 
                 if (!is_null($inherit = $config->getInherit())) {
-                    $inherited = $this->buildFileList([$alias => $inherit], $internalPaths, $fileInVendor);
+                    $inherited = $this->buildFileList([$namespace => $inherit], $internalPaths, $fileInVendor);
                     $returnFiles = array_merge($returnFiles, $inherited);
                 }
 
                 $returnFiles[] = $config;
 
                 if (count($imports = $config->getImports()) > 0){
-                    $returnFiles = array_merge($returnFiles, $this->buildFileList([$alias => array_values($imports)], $internalPaths, $fileInVendor));
+                    $returnFiles = array_merge($returnFiles, $this->buildFileList([$namespace => array_values($imports)], $internalPaths, $fileInVendor));
                 }
             }
         }
@@ -93,9 +93,9 @@ class MasterConfigBuilder
         return $returnFiles;
     }
 
-    protected function createConfig(array $data, string $alias = null)
+    protected function createConfig(array $data, string $namespace = null)
     {
-        return new FileConfig($data, $alias);
+        return new FileConfig($data, $namespace);
     }
 
 

@@ -35,10 +35,9 @@ class Token
     const ENV_CHAR = "$";
 
     /**
-     * This is a terrible choice of separator. It would be much better if this was separated by something like /
-     * but that has many more things that could potentially break
-     * Todo: If we change this, we will also need to change the regex at line 205 of FileConfig
+     * The cahracter that identifies that something is namespaced
+     * e.g. silktide_reposition::client
      */
-    const ALIAS_SEPARATOR = "::";
+    const NAMESPACE_SEPARATOR = "::";
 
 }

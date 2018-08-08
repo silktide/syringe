@@ -14,9 +14,9 @@ class MasterConfig
 
     public function addFileConfig(FileConfig $fileConfig)
     {
-        $this->services = array_merge($this->services, $fileConfig->getAliasedServices());
-        $this->parameters = array_merge($this->parameters, $fileConfig->getAliasedParameters());
-        $this->extensions = array_merge($this->extensions, $fileConfig->getAliasedExtensions());
+        $this->services = array_merge($this->services, $fileConfig->getNamespacedServices());
+        $this->parameters = array_merge($this->parameters, $fileConfig->getNamespacedParameters());
+        $this->extensions = array_merge($this->extensions, $fileConfig->getNamespacedExtensions());
     }
 
     public function getServices()
