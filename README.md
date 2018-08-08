@@ -13,6 +13,7 @@ Syringe allows a [Pimple](https://github.com/silexphp/pimple) DI container to be
 3. Environment variables can be referenced using a $ token
 4. There's unit tests :D
 5. Multibyte support. I haven't done thorough testing, but we now use multibyte safe functions throughout
+6. Multiple files can share the same alias like so: `{"my-alias":["service1.json", "service2.json"]}`
 
 ## BC's
 

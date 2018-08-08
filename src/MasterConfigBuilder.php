@@ -53,37 +53,40 @@ class MasterConfigBuilder
     protected function buildFileList(array $files = [], array $paths, bool $inVendor = false) : array
     {
         $returnFiles = [];
-
-        foreach ($files as $filename => $alias) {
+        foreach ($files as $alias => $filenames) {
+            $alias = !is_int($alias) && !empty($alias) ? $alias : null;
             $fileInVendor = $inVendor;
-            $data = $this->loadFile($filename, $paths);
-            $config = $this->createConfig($data, $alias);
 
-            // The first time we enter the vendor directory we should flush the paths. We never want a vendor/syringe.yml
-            // loading a base services.yml or similar
-            $internalPaths = $paths;
-            if (!$fileInVendor && strpos($filename, "vendor/") !== false) {
-                $internalPaths = [];
-                $fileInVendor = true;
+            if (!is_array($filenames)) {
+                $filenames = [$filenames];
             }
 
-            if (($pos = mb_strrpos($filename, "/")) !== false) {
-                $internalPaths[] = mb_substr($filename, 0, $pos);
-            }
+            foreach ($filenames as $filename) {
+                $data = $this->loadFile($filename, $paths);
+                $config = $this->createConfig($data, $alias);
 
-            if (!is_null($inherit = $config->getInherit())) {
-                $inherited = $this->buildFileList([$inherit => $alias], $internalPaths, $fileInVendor);
-                $returnFiles = array_merge($returnFiles, $inherited);
-            }
-
-            $returnFiles[] = $config;
-
-            if (count($imports = $config->getImports()) > 0){
-                $aliasedImports = [];
-                foreach ($imports as $v) {
-                    $aliasedImports[$v] = $alias;
+                // The first time we enter the vendor directory we should flush the paths. We never want a vendor/syringe.yml
+                // loading a base services.yml or similar
+                $internalPaths = $paths;
+                if (!$fileInVendor && strpos($filename, "vendor/") !== false) {
+                    $internalPaths = [];
+                    $fileInVendor = true;
                 }
-                $returnFiles = array_merge($returnFiles, $this->buildFileList($aliasedImports, $internalPaths, $fileInVendor));
+
+                if (($pos = mb_strrpos($filename, "/")) !== false) {
+                    $internalPaths[] = mb_substr($filename, 0, $pos);
+                }
+
+                if (!is_null($inherit = $config->getInherit())) {
+                    $inherited = $this->buildFileList([$alias => $inherit], $internalPaths, $fileInVendor);
+                    $returnFiles = array_merge($returnFiles, $inherited);
+                }
+
+                $returnFiles[] = $config;
+
+                if (count($imports = $config->getImports()) > 0){
+                    $returnFiles = array_merge($returnFiles, $this->buildFileList([$alias => array_values($imports)], $internalPaths, $fileInVendor));
+                }
             }
         }
 
