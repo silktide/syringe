@@ -9,10 +9,17 @@ use Symfony\Component\Yaml\Yaml;
 
 class YamlLoader implements LoaderInterface
 {
+    protected $hasSymfony;
     protected $forceSymfony;
 
     public function __construct(bool $useSymfony = false)
     {
+        $hasSymfony = class_exists('Symfony\Component\Yaml\Yaml');
+        $hasExtension = function_exists("yaml_parse_file");
+
+        if (!$hasSymfony && !$hasExtension) {
+            throw new \Exception('Either Symfony\Yaml or the Yaml PHP extension is required to use this loader');
+        }
         $this->forceSymfony = $useSymfony;
     }
 
