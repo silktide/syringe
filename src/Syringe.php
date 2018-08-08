@@ -19,7 +19,7 @@ class Syringe
             "serviceLocatorKey" => null,
             "cacheDir" => sys_get_temp_dir() . "/syringe/",
             "loaders" => [new YamlLoader(), new PhpLoader(), new JsonLoader()],
-            "paths" => [getcwd() . "/config"],
+            "paths" => [getcwd(), getcwd() . "/config"],
             "files" => ["syringe.yml"],
             "containerClass" => ContainerBuilder::DEFAULT_CONTAINER_CLASS,
             "cache" => null
@@ -31,7 +31,7 @@ class Syringe
             }
         }
 
-        self::validateConfig($config);
+        $config = self::validateConfig($config);
 
         /**
          * @var CacheInterface|null $cache
@@ -79,6 +79,15 @@ class Syringe
         if ($config["containerClass"] !== ContainerBuilder::DEFAULT_CONTAINER_CLASS) {
             self::validateContainerClass($config["containerClass"]);
         }
+
+        // If the path doesn't exist or isn't a directory, then remove it now rather than later
+        foreach ($config["paths"] as $key => $path) {
+            if (!file_exists($path) || !is_dir($path)) {
+                unset($config["paths"][$key]);
+            }
+        }
+
+        return $config;
     }
 
     protected static function validateContainerClass(string $containerClass)
