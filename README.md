@@ -30,6 +30,7 @@ method that takes an array of configuration options
 9. IniLoader has been removed, the format doesn't suit DI particularly nicely. 
 10. LoaderInterface updated, now requires typehints 
 11. We now support escaping of special tokens (environment, parameter, constant) by character repeating. e.g. a parameter value of 50% would be written as '50%%') 
+12. As we've added a token for environment variables, any uses of $ in parameters will need to be escaped (like so: "I paid $$50 for this shirt")
 
 # Getting Started
 
@@ -42,6 +43,21 @@ $container = \Silktide\Syringe\Syringe::build([
 	"files" => ["config/syringe.yml"]
 ]);
 ```
+
+## Flow
+
+The code is hopefully relatively self explanatory with this version, but a basic rundown of the flow of the library for anyone trying to do future maintenance on it.
+
+`Syringe::build` is the entrypoint in the library which deals with the configuration aspect.
+
+`MasterConfigBuilder` takes the list of files and paths that we'll want to load from and recursively parses the files to build up a in-order list of `FileConfig`'s, which represent each config file we've been asked to load either through the initial config, imports or inherits.
+
+These are then merged into a MasterConfig.php, which handles merging any services together based on their weight, a property decided based on whether the key was loaded from an aliased File.
+
+The `MasterConfig` is then passed into the `CompiledConfigBuilder` which handles aliasing, the building of tags and the merging of abstract configurations. 
+
+Finally the `CompiledConfig` is passed into a `ContainerBuilder` which handles populating the `Pimple\\Container`
+
 
 # Key Production Configuration
 
