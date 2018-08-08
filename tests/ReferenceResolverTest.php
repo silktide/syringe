@@ -119,6 +119,26 @@ class ReferenceResolverTest extends TestCase
         $this->assertSame(["foo" => "parameter_value", "bar" => "parameter_value_2"], $array);
     }
 
+
+    public function testRecursiveParameterArrayResolve()
+    {
+        $this->container["parameter_key"] = function(){return "parameter_value";};
+        $this->container["parameter_key_2"] = function(){return "parameter_value_2";};
+        $array = $this->referenceResolver->resolveArray($this->container, [
+            "foo" => [
+                Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR,
+                Token::PARAMETER_CHAR . "parameter_key_2" . Token::PARAMETER_CHAR
+            ]
+        ]);
+
+        $this->assertSame([
+            "foo" => [
+                "parameter_value",
+                "parameter_value_2"
+            ]
+        ], $array);
+    }
+
     public function parameterEscapedResolveProvider()
     {
         return [
