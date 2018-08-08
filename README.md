@@ -12,6 +12,7 @@ Syringe allows a [Pimple](https://github.com/silexphp/pimple) DI container to be
 2. Tokens can now be escaped by repeating them (50% could be written as "50%%" as a parameter)
 3. Environment variables can be referenced using a $ token
 4. There's unit tests :D
+5. Multibyte support. I haven't done thorough testing, but we now use multibyte safe functions throughout
 
 ## BC's
 
