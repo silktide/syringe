@@ -1,0 +1,5 @@
+parameters:
+    bootstrap: vendor/autoload.php
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        - '#Function yaml_parse_file not found#'
