@@ -9,19 +9,6 @@ use Symfony\Component\Yaml\Yaml;
 
 class YamlLoader implements LoaderInterface
 {
-    protected $useSymfony = false;
-
-    /**
-     * YamlLoader constructor.
-     * @param bool $forceSymfony
-     */
-    public function __construct(bool $forceSymfony = false)
-    {
-        if ($forceSymfony || !function_exists("yaml_parse")) {
-            $this->useSymfony = true;
-        }
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -44,18 +31,12 @@ class YamlLoader implements LoaderInterface
      */
     public function loadFile(string $file) : array
     {
-        if ($this->useSymfony) {
-            try {
-                if (file_exists($file)) {
-                    return Yaml::parseFile($file);
-                }
-                throw new LoaderException("Requested YAML file '{$file}' doesn't exist");
-            } catch (ParseException $e) {
-                throw new LoaderException("Could not load the YAML file '{$file}': ".$e->getMessage());
-            }
+        if (!file_exists($file)) {
+            throw new LoaderException("Requested YAML file '{$file}' doesn't exist");
         }
 
-        $data = yaml_parse_file($file);
+        $data = (function_exists("yaml_parse_file") ? yaml_parse_file($file) : Yaml::parseFile($file));
+
         if (!is_array($data)) {
             throw new LoaderException("Requested YAML file '{$file}' does not parse to an array");
         }
