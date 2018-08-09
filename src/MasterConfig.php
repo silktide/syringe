@@ -21,9 +21,7 @@ class MasterConfig
 
     public function getServices()
     {
-        usort($this->services, function(array $v1, array $v2) {
-            return $v1["weight"] - $v2["weight"];
-        });
+        $this->stableWeightSort($this->services);
 
         $services = [];
         foreach ($this->services as $array) {
@@ -41,9 +39,7 @@ class MasterConfig
 
     public function getParameters()
     {
-        usort($this->parameters, function(array $v1, array $v2) {
-            return $v1["weight"] - $v2["weight"];
-        });
+        $this->stableWeightSort($this->parameters);
 
         $parameters = [];
         foreach ($this->parameters as $array) {
@@ -54,14 +50,35 @@ class MasterConfig
 
     public function getExtensions()
     {
-        usort($this->extensions, function(array $v1, array $v2) {
-            return $v1["weight"] - $v2["weight"];
-        });
+        $this->stableWeightSort($this->extensions);
 
         $extensions = [];
         foreach ($this->extensions as $array) {
             $extensions[$array["name"]] = array_merge($extensions[$array["name"]] ?? [], $array["value"]);
         }
         return $extensions;
+    }
+
+    /**
+     * All of these should be ordered by weight, but keep their order if they were equal, aka, a stable sort
+     * Unfortunately, all of PHPs underlying sorting is done by QuickSort, so we have to do the sorting ourselves
+     *
+     * @param array $array
+     * @return array
+     */
+    protected function stableWeightSort(array &$array)
+    {
+        foreach ($array as $i => &$value) {
+            $value["key"] = $i;
+        }
+        unset($value);
+
+        usort($array, function(array $v1, array $v2) {
+            $byWeight = $v1["weight"] - $v2["weight"];
+            if ($byWeight === 0) {
+                return $v1["key"] - $v2["key"];
+            }
+            return $byWeight;
+        });
     }
 }
