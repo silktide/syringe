@@ -119,7 +119,6 @@ class ReferenceResolverTest extends TestCase
         $this->assertSame(["foo" => "parameter_value", "bar" => "parameter_value_2"], $array);
     }
 
-
     public function testRecursiveParameterArrayResolve()
     {
         $this->container["parameter_key"] = function(){return "parameter_value";};
@@ -136,6 +135,26 @@ class ReferenceResolverTest extends TestCase
                 "parameter_value",
                 "parameter_value_2"
             ]
+        ], $array);
+    }
+
+
+    public function testReferencedParameterArray()
+    {
+        $this->container["options"] = function(){ return ["foo" => "bar"]; };
+        $array = $this->referenceResolver->resolve($this->container, "%options%");
+        $this->assertSame([
+            "foo" => "bar"
+        ], $array);
+    }
+
+    public function testReferencedParameterArrayResolve()
+    {
+        $this->container["options"] = function(){ return ["foo" => "%bar%"]; };
+        $this->container["bar"] = "chicken";
+        $array = $this->referenceResolver->resolve($this->container, "%options%");
+        $this->assertSame([
+            "foo" => "chicken"
         ], $array);
     }
 
