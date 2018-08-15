@@ -138,6 +138,18 @@ class ReferenceResolverTest extends TestCase
         ], $array);
     }
 
+    public function testResolveNull()
+    {
+        $this->container["parameter_key"] = function(){return null;};
+        $array = $this->referenceResolver->resolveArray($this->container, [
+            Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR
+        ]);
+
+        $this->assertSame([
+            null,
+        ], $array);
+    }
+
 
     public function testReferencedParameterArray()
     {

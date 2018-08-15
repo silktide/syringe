@@ -34,13 +34,19 @@ class ReferenceResolver
         }
 
         $parameter = $this->replaceParameters($container, $parameter);
-        if (is_array($parameter)) {
-            return $this->resolveArray($container, $parameter);
+        if (!is_string($parameter)) {
+            if (is_array($parameter)) {
+                return $this->resolveArray($container, $parameter);
+            }
+            return $parameter;
         }
 
         $parameter = $this->replaceConstants($container, $parameter);
-        if (is_array($parameter)) {
-            return $this->resolveArray($container, $parameter);
+        if (!is_string($parameter)) {
+            if (is_array($parameter)) {
+                return $this->resolveArray($container, $parameter);
+            }
+            return $parameter;
         }
 
         return $this->replaceEnvironment($container, $parameter);
