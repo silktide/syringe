@@ -150,6 +150,23 @@ class ReferenceResolverTest extends TestCase
         ], $array);
     }
 
+    /**
+     * @expectedException \Silktide\Syringe\Exception\ConfigException
+     */
+    public function testArrayConcatenationFailure()
+    {
+        $this->container["parameter_key"] = function(){ return ["foo", "bar"]; };
+        $this->referenceResolver->resolve($this->container, "foo%parameter_key%");
+    }
+
+    /**
+     * @expectedException \Silktide\Syringe\Exception\ConfigException
+     */
+    public function testNullConcatenationFailure()
+    {
+        $this->container["parameter_key"] = function(){ return null; };
+        $this->referenceResolver->resolve($this->container, "foo%parameter_key%");
+    }
 
     public function testReferencedParameterArray()
     {
