@@ -38,27 +38,27 @@ class ContainerBuilder
             $container[$key] = function () use ($container, $definition) {
                 $isFactoryCreated = isset($definition["factoryMethod"]);
 
-                if ($isFactoryCreated) {
-                    if (isset($definition["factoryService"])) {
-                        $service = $this->referenceResolver->resolve($container, $definition["factoryService"]);
-                        $method = $definition["factoryMethod"];
-                        $arguments = $this->referenceResolver->resolveArray($container, $definition["arguments"] ?? []);
-                        return call_user_func_array([$service, $method], $arguments);
-                    }
-
-                    $arguments = $this->referenceResolver->resolveArray($container, $definition["arguments"] ?? []);
-                    $factoryClass = $definition["factoryClass"];
-                    $factoryMethod = $definition["factoryMethod"];
-                    return call_user_func_array([$factoryClass, $factoryMethod], $arguments);
+                $arguments = [];
+                if (isset($definition["arguments"])) {
+                    $arguments = $this->referenceResolver->resolveArray($container, $definition["arguments"]);
                 }
 
-                $args = $this->referenceResolver->resolveArray($container, $definition["arguments"] ?? []);
-                $service = (new \ReflectionClass($definition["class"]))->newInstanceArgs($args);
+                if ($isFactoryCreated) {
+                    return call_user_func_array(
+                        [
+                            $definition["factoryClass"] ?? $this->referenceResolver->resolve($container, $definition["factoryService"]),
+                            $definition["factoryMethod"]
+                        ],
+                        $arguments
+                    );
+                }
+
+                $service = (new \ReflectionClass($definition["class"]))->newInstanceArgs($arguments);
 
                 foreach ($definition["calls"] ?? [] as $call) {
                     call_user_func_array(
                         [$service, $call["method"]],
-                        $this->referenceResolver->resolveArray($container, $call["arguments"] ?? [])
+                        isset($call["arguments"]) ? $this->referenceResolver->resolveArray($container, $call["arguments"]) : []
                     );
                 }
                 return $service;

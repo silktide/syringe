@@ -14,11 +14,7 @@ class ReferenceResolver
     public function resolveArray(Container $container, array $array)
     {
         foreach ($array as $k => $v) {
-            if (is_array($v)) {
-                $array[$k] = $this->resolveArray($container, $v);
-            } else {
-                $array[$k] = $this->resolve($container, $v);
-            }
+            $array[$k] = is_array($v) ? $this->resolveArray($container, $v) : $this->resolve($container, $v);
         }
         return $array;
     }
