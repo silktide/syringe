@@ -22,6 +22,7 @@ class Syringe
             "paths" => [getcwd(), getcwd() . "/config"],
             "files" => ["syringe.yml"],
             "containerClass" => ContainerBuilder::DEFAULT_CONTAINER_CLASS,
+            "containerService" => null,
             "cache" => null
         ];
 
@@ -57,9 +58,11 @@ class Syringe
             }
         }
 
-        $containerBuilder = new ContainerBuilder(new ReferenceResolver());
+        if (is_null($container = $config["containerService"])) {
+            $container = new $config["containerClass"];
+        }
 
-        $container = new $config["containerClass"];
+        $containerBuilder = new ContainerBuilder(new ReferenceResolver());
         $containerBuilder->populateContainer($container, $compiledConfig);
 
         if (!is_null($config["appDirKey"])) {
