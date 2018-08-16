@@ -164,9 +164,18 @@ class FileConfig
                 continue;
             }
 
+            // We don't validate if we're aliasing or if this is just an abstract function
+            if (!empty($definition["extends"])) {
+                if (mb_substr($definition["extends"], 0, 1) !== "@") {
+                    throw new ConfigException("AliasOf expects a service prefixed with @");
+                }
+                continue;
+            }
+
             if (!empty($definition["abstract"])) {
                 continue;
             }
+
 
             // Validate classes
             if (empty($definition["class"])) {

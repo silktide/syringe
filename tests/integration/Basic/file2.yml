@@ -1,0 +1,13 @@
+services:
+  my_service_3:
+    class: Silktide\Syringe\IntegrationTests\Examples\ExampleClass
+    arguments:
+      - "MyService3"
+
+  my_service_4:
+    class: Silktide\Syringe\IntegrationTests\Examples\ExampleClass
+    arguments:
+      - "%my_parameter_4%"
+
+parameters:
+  my_parameter_4: "MyService4"
