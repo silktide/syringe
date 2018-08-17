@@ -22,6 +22,7 @@ class Syringe
             "paths" => [getcwd(), getcwd() . "/config"],
             "files" => ["syringe.yml"],
             "containerClass" => ContainerBuilder::DEFAULT_CONTAINER_CLASS,
+            "containerService" => null,
             "cache" => null
         ];
 
@@ -33,12 +34,15 @@ class Syringe
 
         $config = self::validateConfig($config);
 
-        /**
-         * @var CacheInterface|null $cache
-         */
-        $cache = $config["cache"];
-        $cacheEnabled = $cache instanceof CacheInterface;
-        $cacheKey = "syringe.compiled_config";
+        $cacheEnabled = false;
+        $cacheKey = null;
+        if (!is_null($cache = $config["cache"])) {
+            if (!($cache instanceof CacheInterface)) {
+                throw new ConfigException("'cache' must implement the PSR-16 CacheInterface");
+            }
+            $cacheEnabled = true;
+            $cacheKey = self::createCacheKey($config);
+        };
 
         $compiledConfig = null;
         if ($cacheEnabled) {
@@ -57,9 +61,11 @@ class Syringe
             }
         }
 
-        $containerBuilder = new ContainerBuilder(new ReferenceResolver());
+        if (is_null($container = $config["containerService"])) {
+            $container = new $config["containerClass"];
+        }
 
-        $container = new $config["containerClass"];
+        $containerBuilder = new ContainerBuilder(new ReferenceResolver());
         $containerBuilder->populateContainer($container, $compiledConfig);
 
         if (!is_null($config["appDirKey"])) {
@@ -71,6 +77,12 @@ class Syringe
         }
 
         return $container;
+    }
+
+    protected static function createCacheKey(array $config)
+    {
+        $uniqueConfig = array_intersect_key($config, array_flip(["appDir", "paths", "files"]));
+        return "syringe.compiled_config-" . md5(json_encode($uniqueConfig, true));
     }
 
     protected static function validateConfig(array $config = [])
