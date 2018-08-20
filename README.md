@@ -470,5 +470,5 @@ Once created, such a loader can be used by overwriting `$config["loaders"] = [ne
 
 Written by:
 
- - Doug Nelson (dougnelson@silktide.com)
- - Danny Smart (dannysmart@silktide.com).
+ - [Doug Nelson](https://github.com/dolondro)
+ - [Danny Smart](https://github.com/downsider)
