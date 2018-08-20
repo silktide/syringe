@@ -176,7 +176,6 @@ class FileConfig
                 continue;
             }
 
-
             // Validate classes
             if (empty($definition["class"])) {
                 throw new ConfigException("The service definition for '{$serviceName}' does not have a class");
@@ -215,7 +214,6 @@ class FileConfig
             }
         }
     }
-
 
     protected function namespace(string $string)
     {
