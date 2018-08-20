@@ -2,6 +2,7 @@
 
 namespace Silktide\Syringe;
 
+use Pimple\Container;
 use Psr\SimpleCache\CacheInterface;
 use Silktide\Syringe\Exception\ConfigException;
 use Silktide\Syringe\Loader\JsonLoader;
@@ -10,6 +11,13 @@ use Silktide\Syringe\Loader\YamlLoader;
 
 class Syringe
 {
+    /**
+     * @param array $config
+     * @return Container
+     * @throws ConfigException
+     * @throws Exception\LoaderException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
     public static function build(array $config)
     {
         // Setup config

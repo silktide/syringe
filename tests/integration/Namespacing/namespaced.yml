@@ -1,0 +1,11 @@
+parameters:
+  my_parameter: "from-namespaced"
+  my_parameter_2: "from-namespaced-value-2"
+
+services:
+  my_service:
+    class: Silktide\Syringe\IntegrationTests\Examples\ExampleClass
+    arguments:
+      - "%my_parameter_2%"
+    tags:
+      - "tag1"
