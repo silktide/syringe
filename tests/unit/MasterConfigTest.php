@@ -15,7 +15,7 @@ class MasterConfigTest extends TestCase
         $maxFiles = 500;
         $masterConfig = new MasterConfig();
         for ($x=0; $x<=$maxFiles; $x++) {
-            $masterConfig->addFileConfig($this->createFakeFileConfig([
+            $masterConfig->addFileConfig("filename.yml", $this->createFakeFileConfig([
                 [
                     "name" => "overwritten_key",
                     "weight" => 1,
@@ -36,7 +36,7 @@ class MasterConfigTest extends TestCase
     public function testParameterWeightOrder()
     {
         $masterConfig = new MasterConfig();
-        $masterConfig->addFileConfig($this->createFakeFileConfig([
+        $masterConfig->addFileConfig("filename.yml", $this->createFakeFileConfig([
             [
                 "name" => "overwritten",
                 "weight" => 1,

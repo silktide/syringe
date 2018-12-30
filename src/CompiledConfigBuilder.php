@@ -92,6 +92,10 @@ class CompiledConfigBuilder
             $services[$serviceName]["calls"] = array_merge($services[$serviceName]["calls"] ?? [], $extensionCalls);
         }
 
-        return new CompiledConfig($services, $aliases, $parameters, $tags);
+        $filenameContentHashes = [];
+        foreach ($masterConfig->getFilenames() as $filename) {
+            $filenameContentHashes[$filename] = FileHasher::hash($filename);
+        }
+        return new CompiledConfig($services, $aliases, $parameters, $tags, $filenameContentHashes);
     }
 }

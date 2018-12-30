@@ -2,8 +2,8 @@
 
 namespace Silktide\Syringe\Loader;
 
-interface LoaderInterface {
-
+interface LoaderInterface
+{
     /**
      * @return string
      */

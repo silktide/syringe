@@ -10,13 +10,15 @@ class CompiledConfig
     protected $aliases;
     protected $parameters;
     protected $tags;
+    protected $filenameContentHashes = [];
 
-    public function __construct(array $services, array $aliases, array $parameters, array $tags)
+    public function __construct(array $services, array $aliases, array $parameters, array $tags, array $filenameContentHashes = [])
     {
         $this->services = $services;
         $this->aliases = $aliases;
         $this->parameters = $parameters;
         $this->tags = $tags;
+        $this->filenameContentHashes = $filenameContentHashes;
     }
 
     /**
@@ -49,5 +51,16 @@ class CompiledConfig
     public function getTags(): array
     {
         return $this->tags;
+    }
+
+    public function verifyContentHashes()
+    {
+        foreach ($this->filenameContentHashes as $filename => $contentHash) {
+            if (!FileHasher::verify($filename, $contentHash)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

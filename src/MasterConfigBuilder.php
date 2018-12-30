@@ -35,9 +35,9 @@ class MasterConfigBuilder
         $files = $this->buildFileList($files, $paths);
 
         $masterConfig = new MasterConfig();
-        foreach ($files as $file) {
+        foreach ($files as $filename => $file) {
             $file->validate();
-            $masterConfig->addFileConfig($file);
+            $masterConfig->addFileConfig($filename, $file);
         }
         return $masterConfig;
     }
@@ -82,7 +82,7 @@ class MasterConfigBuilder
                     $returnFiles = array_merge($returnFiles, $inherited);
                 }
 
-                $returnFiles[] = $config;
+                $returnFiles[$filename] = $config;
 
                 if (count($imports = $config->getImports()) > 0){
                     $returnFiles = array_merge($returnFiles, $this->buildFileList([$namespace => array_values($imports)], $internalPaths, $fileInVendor));
