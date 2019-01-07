@@ -13,9 +13,9 @@ class MasterConfig
     protected $parameters = [];
     protected $extensions = [];
 
-    public function addFileConfig(string $filename, FileConfig $fileConfig)
+    public function addFileConfig(FileConfig $fileConfig)
     {
-        $this->filenames[] = $filename;
+        $this->filenames[] = $fileConfig->getFilename();
         $this->services = array_merge($this->services, $fileConfig->getNamespacedServices());
         $this->parameters = array_merge($this->parameters, $fileConfig->getNamespacedParameters());
         $this->extensions = array_merge($this->extensions, $fileConfig->getNamespacedExtensions());

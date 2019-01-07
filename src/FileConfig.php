@@ -29,6 +29,7 @@ class FileConfig
         "override" => 1
     ];
 
+    protected $filename;
     protected $keys = [];
     protected $namespace = null;
     protected $imports = [];
@@ -38,8 +39,9 @@ class FileConfig
     protected $services = [];
     protected $extensions = [];
 
-    public function __construct(array $data = [], string $namespace = null)
+    public function __construct(string $filename, array $data = [], string $namespace = null)
     {
+        $this->filename = $filename;
         $this->keys = array_keys($data);
         $this->namespace = $namespace;
         $this->imports = $data["imports"] ?? [];
@@ -81,6 +83,11 @@ class FileConfig
     public function getExtensions() : array
     {
         return $this->extensions;
+    }
+
+    public function getFilename() : string
+    {
+        return $this->filename;
     }
 
     /**
