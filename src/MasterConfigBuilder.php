@@ -77,7 +77,7 @@ class MasterConfigBuilder
                     $returnFiles = array_merge($returnFiles, $inherited);
                 }
 
-                $returnFiles[$filename] = $config;
+                $returnFiles[] = $config;
 
                 if (count($imports = $config->getImports()) > 0){
                     $returnFiles = array_merge($returnFiles, $this->buildFileList([$namespace => array_values($imports)], $internalPaths, $fileInVendor));
