@@ -41,7 +41,7 @@ class ReferenceResolver
             return $parameter;
         }
 
-        $parameter = $this->replaceConstants($container, $parameter);
+        $parameter = $this->replaceConstants($parameter);
         if (!is_string($parameter)) {
             if (is_array($parameter)) {
                 return $this->resolveArray($container, $parameter);
@@ -49,7 +49,7 @@ class ReferenceResolver
             return $parameter;
         }
 
-        return $this->replaceEnvironment($container, $parameter);
+        return $this->replaceEnvironment($parameter);
     }
 
     protected function replaceParameters(Container $container, string $parameter)
@@ -63,7 +63,7 @@ class ReferenceResolver
         });
     }
 
-    protected function replaceConstants(Container $container, string $parameter)
+    protected function replaceConstants(string $parameter)
     {
         return $this->replaceSurroundingToken($parameter, Token::CONSTANT_CHAR, function($value) {
             if (defined($value)) {
@@ -74,7 +74,7 @@ class ReferenceResolver
         });
     }
 
-    protected function replaceEnvironment(Container $container, string $parameter)
+    protected function replaceEnvironment(string $parameter)
     {
         return $this->replaceSurroundingToken($parameter, Token::ENV_CHAR, function($value) {
             if (($env = getenv($value)) !== false) {
