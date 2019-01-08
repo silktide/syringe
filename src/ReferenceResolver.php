@@ -41,7 +41,7 @@ class ReferenceResolver
             return $parameter;
         }
 
-        $parameter = $this->replaceConstants($container, $parameter);
+        $parameter = $this->replaceConstants($parameter);
         if (!is_string($parameter)) {
             if (is_array($parameter)) {
                 return $this->resolveArray($container, $parameter);
@@ -49,12 +49,12 @@ class ReferenceResolver
             return $parameter;
         }
 
-        return $this->replaceEnvironment($container, $parameter);
+        return $this->replaceEnvironment($parameter);
     }
 
     protected function replaceParameters(Container $container, string $parameter)
     {
-        return $this->replaceSurroundingToken($container, $parameter, Token::PARAMETER_CHAR, function($value) use ($container) {
+        return $this->replaceSurroundingToken($parameter, Token::PARAMETER_CHAR, function($value) use ($container) {
             if ($container->offsetExists($value)) {
                 return $container->offsetGet($value);
             }
@@ -63,9 +63,9 @@ class ReferenceResolver
         });
     }
 
-    protected function replaceConstants(Container $container, string $parameter)
+    protected function replaceConstants(string $parameter)
     {
-        return $this->replaceSurroundingToken($container, $parameter, Token::CONSTANT_CHAR, function($value) {
+        return $this->replaceSurroundingToken($parameter, Token::CONSTANT_CHAR, function($value) {
             if (defined($value)) {
                 return constant($value);
             }
@@ -74,9 +74,9 @@ class ReferenceResolver
         });
     }
 
-    protected function replaceEnvironment(Container $container, string $parameter)
+    protected function replaceEnvironment(string $parameter)
     {
-        return $this->replaceSurroundingToken($container, $parameter, Token::ENV_CHAR, function($value) {
+        return $this->replaceSurroundingToken($parameter, Token::ENV_CHAR, function($value) {
             if (($env = getenv($value)) !== false) {
                 return $env;
             }
@@ -85,7 +85,7 @@ class ReferenceResolver
         });
     }
 
-    protected function replaceSurroundingToken(Container $container, string $parameter, string $token, callable $callable)
+    protected function replaceSurroundingToken(string $parameter, string $token, callable $callable)
     {
         $oldParameter = $parameter;
 

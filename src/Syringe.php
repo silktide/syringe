@@ -31,7 +31,8 @@ class Syringe
             "files" => ["syringe.yml"],
             "containerClass" => ContainerBuilder::DEFAULT_CONTAINER_CLASS,
             "containerService" => null,
-            "cache" => null
+            "cache" => null,
+            "validateCache" => false
         ];
 
         foreach ($defaults as $key => $value) {
@@ -54,7 +55,16 @@ class Syringe
 
         $compiledConfig = null;
         if ($cacheEnabled) {
+            /**
+             * @var CompiledConfig|null
+             */
             $compiledConfig = $cache->get($cacheKey);
+        }
+
+        if (!is_null($compiledConfig) && $config["validateCache"]) {
+            if (!$compiledConfig->isValid()) {
+                $compiledConfig = null;
+            }
         }
 
         if (is_null($compiledConfig)) {

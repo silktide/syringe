@@ -92,6 +92,6 @@ class CompiledConfigBuilder
             $services[$serviceName]["calls"] = array_merge($services[$serviceName]["calls"] ?? [], $extensionCalls);
         }
 
-        return new CompiledConfig($services, $aliases, $parameters, $tags);
+        return new CompiledConfig($services, $aliases, $parameters, $tags, FileStateCollection::build($masterConfig->getFilenames()));
     }
 }

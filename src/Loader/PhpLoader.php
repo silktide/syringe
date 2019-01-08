@@ -7,7 +7,8 @@ use Silktide\Syringe\Exception\LoaderException;
 /**
  * Load a config file in JSON format
  */
-class PhpLoader implements LoaderInterface {
+class PhpLoader implements LoaderInterface
+{
 
     /**
      * {@inheritDoc}

@@ -72,7 +72,7 @@ class FileConfigTest extends TestCase
      */
     public function testFailures(array $data, string $reason)
     {
-        $fileConfig = new FileConfig(["services" => ["service" => $data]]);
+        $fileConfig = new FileConfig("filename.yml", ["services" => ["service" => $data]]);
         $fileConfig->validate();
     }
 
@@ -117,7 +117,7 @@ class FileConfigTest extends TestCase
      */
     public function testSuccesses(array $data)
     {
-        $fileConfig = new FileConfig(["services" => ["service" => $data]]);
+        $fileConfig = new FileConfig("filename.yml", ["services" => ["service" => $data]]);
         $fileConfig->validate();
         $this->assertTrue(true);
     }

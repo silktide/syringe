@@ -1,14 +1,9 @@
 <?php
 
-
 namespace Silktide\Syringe;
 
-
 use Silktide\Syringe\Exception\LoaderException;
-use Silktide\Syringe\Loader\JsonLoader;
 use Silktide\Syringe\Loader\LoaderInterface;
-use Silktide\Syringe\Loader\PhpLoader;
-use Silktide\Syringe\Loader\YamlLoader;
 
 class MasterConfigBuilder
 {
@@ -35,7 +30,7 @@ class MasterConfigBuilder
         $files = $this->buildFileList($files, $paths);
 
         $masterConfig = new MasterConfig();
-        foreach ($files as $file) {
+        foreach ($files as $filename => $file) {
             $file->validate();
             $masterConfig->addFileConfig($file);
         }
@@ -63,7 +58,7 @@ class MasterConfigBuilder
 
             foreach ($filenames as $filename) {
                 $data = $this->loadFile($filename, $paths);
-                $config = $this->createConfig($data, $namespace);
+                $config = $this->createConfig($filename, $data, $namespace);
 
                 // The first time we enter the vendor directory we should flush the paths. We never want a vendor/syringe.yml
                 // loading a base services.yml or similar
@@ -93,9 +88,9 @@ class MasterConfigBuilder
         return $returnFiles;
     }
 
-    protected function createConfig(array $data, string $namespace = null)
+    protected function createConfig(string $filename, array $data, string $namespace = null)
     {
-        return new FileConfig($data, $namespace);
+        return new FileConfig($filename, $data, $namespace);
     }
 
 
