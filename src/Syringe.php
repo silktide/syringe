@@ -55,11 +55,14 @@ class Syringe
 
         $compiledConfig = null;
         if ($cacheEnabled) {
+            /**
+             * @var CompiledConfig|null
+             */
             $compiledConfig = $cache->get($cacheKey);
         }
 
         if (!is_null($compiledConfig) && $config["validateCache"]) {
-            if (!$compiledConfig->verifyContentHashes()) {
+            if (!$compiledConfig->isValid()) {
                 $compiledConfig = null;
             }
         }

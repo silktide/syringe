@@ -10,15 +10,15 @@ class CompiledConfig
     protected $aliases;
     protected $parameters;
     protected $tags;
-    protected $filenameContentHashes = [];
+    protected $fileStateCollection = [];
 
-    public function __construct(array $services, array $aliases, array $parameters, array $tags, array $filenameContentHashes = [])
+    public function __construct(array $services, array $aliases, array $parameters, array $tags, FileStateCollection $fileStateCollection)
     {
         $this->services = $services;
         $this->aliases = $aliases;
         $this->parameters = $parameters;
         $this->tags = $tags;
-        $this->filenameContentHashes = $filenameContentHashes;
+        $this->fileStateCollection = $fileStateCollection;
     }
 
     /**
@@ -53,14 +53,8 @@ class CompiledConfig
         return $this->tags;
     }
 
-    public function verifyContentHashes()
+    public function isValid()
     {
-        foreach ($this->filenameContentHashes as $filename => $contentHash) {
-            if (!FileHasher::verify($filename, $contentHash)) {
-                return false;
-            }
-        }
-
-        return true;
+        return $this->fileStateCollection->isValid();
     }
 }
