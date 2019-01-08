@@ -10,7 +10,7 @@ class CompiledConfig
     protected $aliases;
     protected $parameters;
     protected $tags;
-    protected $fileStateCollection = [];
+    protected $fileStateCollection;
 
     public function __construct(array $services, array $aliases, array $parameters, array $tags, FileStateCollection $fileStateCollection)
     {
@@ -53,7 +53,10 @@ class CompiledConfig
         return $this->tags;
     }
 
-    public function isValid()
+    /**
+     * @return bool
+     */
+    public function isValid() : bool
     {
         return $this->fileStateCollection->isValid();
     }

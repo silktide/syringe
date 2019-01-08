@@ -17,12 +17,12 @@ class FileStateCollection
         }
     }
 
-    public static function build(array $filenames)
+    public static function build(array $filenames) : FileStateCollection
     {
         return new FileStateCollection($filenames);
     }
 
-    public function isValid()
+    public function isValid() : bool
     {
         clearstatcache();
         foreach ($this->state as $filename => $info) {
