@@ -28,7 +28,7 @@ method that takes an array of configuration options
 5. Containers are now always generated as part of Syringe rather than exposing populating an existing container.
 6. Files that inherit from each other will now throw exceptions if they overwrite each others services. A new parameter `override` has been added to services. If you are adding a service into the container and are well aware of the fact that it will overwrite an existing service you can set the `override` flag and it will not throw an error.
 7. Private services have been removed, in practice they added nothing useful but complicated affairs. 
-8. Environment variables are no longer injected through prefixing parameters with `SYRINGE__FOO` as this was a bit clunky and the wrong way around to do it. A new token of `&` means we can inject environment variables as parameters like so `&foo&`
+8. Environment variables are no longer injected through prefixing parameters with `SYRINGE__FOO` as this was a bit clunky and the wrong way around to do it. A new token of `$` means we can inject environment variables as parameters like so `$foo$`
 9. IniLoader has been removed, the format doesn't suit DI particularly nicely. 
 10. LoaderInterface updated, now requires typehints 
 11. We now support escaping of special tokens (environment, parameter, constant) by character repeating. e.g. a parameter value of 50% would be written as '50%%') 
