@@ -54,6 +54,10 @@ class ReferenceResolver
 
     protected function replaceParameters(Container $container, string $parameter)
     {
+        if (mb_strpos($parameter, Token::PARAMETER_CHAR) === false) {
+            return $parameter;
+        }
+
         return $this->replaceSurroundingToken($parameter, Token::PARAMETER_CHAR, function($value) use ($container) {
             if ($container->offsetExists($value)) {
                 return $container->offsetGet($value);
@@ -65,6 +69,10 @@ class ReferenceResolver
 
     protected function replaceConstants(string $parameter)
     {
+        if (mb_strpos($parameter, Token::CONSTANT_CHAR) === false) {
+            return $parameter;
+        }
+
         return $this->replaceSurroundingToken($parameter, Token::CONSTANT_CHAR, function($value) {
             if (defined($value)) {
                 return constant($value);
@@ -76,6 +84,10 @@ class ReferenceResolver
 
     protected function replaceEnvironment(string $parameter)
     {
+        if (mb_strpos($parameter, Token::ENV_CHAR) === false) {
+            return $parameter;
+        }
+
         return $this->replaceSurroundingToken($parameter, Token::ENV_CHAR, function($value) {
             if (($env = getenv($value)) !== false) {
                 return $env;
