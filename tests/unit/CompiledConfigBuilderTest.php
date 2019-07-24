@@ -6,12 +6,13 @@ use PHPUnit\Framework\TestCase;
 use Silktide\Syringe\CompiledConfigBuilder;
 use Silktide\Syringe\FileConfig;
 use Silktide\Syringe\MasterConfig;
+use Silktide\Syringe\ParameterResolver;
 
 class CompiledConfigBuilderTest extends TestCase
 {
     public function testExtendingAbstract()
     {
-        $compiledConfigBuilder = new CompiledConfigBuilder();
+        $compiledConfigBuilder = new CompiledConfigBuilder(new ParameterResolver());
 
         $masterConfig = self::createMock(MasterConfig::class);
         $masterConfig->method("getParameters")->willReturn([]);
@@ -41,7 +42,7 @@ class CompiledConfigBuilderTest extends TestCase
 
     public function testRecursiveExtendingAbstract()
     {
-        $compiledConfigBuilder = new CompiledConfigBuilder();
+        $compiledConfigBuilder = new CompiledConfigBuilder(new ParameterResolver());
 
         $masterConfig = self::createMock(MasterConfig::class);
         $masterConfig->method("getParameters")->willReturn([]);
@@ -88,7 +89,7 @@ class CompiledConfigBuilderTest extends TestCase
 
     public function testTagCreation()
     {
-        $compiledConfigBuilder = new CompiledConfigBuilder();
+        $compiledConfigBuilder = new CompiledConfigBuilder(new ParameterResolver());
 
         $masterConfig = self::createMock(MasterConfig::class);
         $masterConfig->method("getParameters")->willReturn([]);
@@ -124,7 +125,7 @@ class CompiledConfigBuilderTest extends TestCase
 
     public function testExtensions()
     {
-        $compiledConfigBuilder = new CompiledConfigBuilder();
+        $compiledConfigBuilder = new CompiledConfigBuilder(new ParameterResolver());
         $masterConfig = self::createMock(MasterConfig::class);
         $masterConfig->method("getParameters")->willReturn([]);
         $masterConfig->method("getServices")->willReturn([

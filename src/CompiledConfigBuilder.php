@@ -8,6 +8,13 @@ use Silktide\Syringe\Exception\ConfigException;
 
 class CompiledConfigBuilder
 {
+    protected $referenceResolver;
+
+    public function __construct(ParameterResolver $referenceResolver)
+    {
+        $this->referenceResolver = $referenceResolver;
+    }
+
     public function build(MasterConfig $masterConfig)
     {
         $abstractServices = [];
@@ -19,6 +26,7 @@ class CompiledConfigBuilder
         $extensions = $masterConfig->getExtensions();
         $tags = [];
 
+        // Deal with abstract functions
         foreach ($services as $key => $definition) {
             if (!empty($definition["abstract"])) {
                 $abstractServices[$key] = $definition;
@@ -90,6 +98,26 @@ class CompiledConfigBuilder
             }
 
             $services[$serviceName]["calls"] = array_merge($services[$serviceName]["calls"] ?? [], $extensionCalls);
+        }
+
+
+        foreach ($parameters as $key => $value) {
+            // Resolve all the parameters up front
+            $parameters[$key] = $this->referenceResolver->resolve($parameters, $value);
+        }
+
+        foreach ($services as $serviceName => &$definition) {
+            if (isset($definition["arguments"])) {
+                $definition["arguments"] = $this->referenceResolver->resolveArray($parameters, $definition["arguments"]);
+            }
+
+            if (isset($definition["calls"])) {
+                foreach ($definition["calls"] as &$call) {
+                    if (isset($call["arguments"])) {
+                        $call["arguments"] = $this->referenceResolver->resolveArray($parameters, $call["arguments"]);
+                    }
+                }
+            }
         }
 
         return new CompiledConfig($services, $aliases, $parameters, $tags, FileStateCollection::build($masterConfig->getFilenames()));

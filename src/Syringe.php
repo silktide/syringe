@@ -56,7 +56,7 @@ class Syringe
         $compiledConfig = null;
         if ($cacheEnabled) {
             /**
-             * @var CompiledConfig|null
+             * @var CompiledConfig|null $compiledConfig
              */
             $compiledConfig = $cache->get($cacheKey);
         }
@@ -71,7 +71,7 @@ class Syringe
             $masterConfigBuilder = new MasterConfigBuilder($config["loaders"]);
             $masterConfig = $masterConfigBuilder->load($config["files"], $config["paths"]);
 
-            $compiledConfigBuilder = new CompiledConfigBuilder();
+            $compiledConfigBuilder = new CompiledConfigBuilder(new ParameterResolver());
             $compiledConfig = $compiledConfigBuilder->build($masterConfig);
 
             if ($cacheEnabled) {
@@ -83,7 +83,7 @@ class Syringe
             $container = new $config["containerClass"];
         }
 
-        $containerBuilder = new ContainerBuilder(new ReferenceResolver());
+        $containerBuilder = new ContainerBuilder(new ParameterResolver());
         $containerBuilder->populateContainer($container, $compiledConfig);
 
         if (!is_null($config["appDirKey"])) {
