@@ -39,7 +39,7 @@ class ContainerBuilder
                 if ($isFactoryCreated) {
                     return call_user_func_array(
                         [
-                            $definition["factoryClass"] ?? $container->offsetGet($definition["factoryService"]),
+                            $definition["factoryClass"] ?? $container->offsetGet(mb_substr($definition["factoryService"], 1)),
                             $definition["factoryMethod"]
                         ],
                         $arguments
