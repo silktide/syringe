@@ -7,10 +7,5 @@ services:
       - "tag1"
       - "tag2"
 
-  my_service_2:
-    class: Silktide\Syringe\IntegrationTests\Examples\ExampleClass
-    arguments:
-      - "%my_parameter_2%"
-
 parameters:
   my_parameter: "from-file1"
