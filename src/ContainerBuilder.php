@@ -77,7 +77,7 @@ class ContainerBuilder
     {
         $arguments = [];
         foreach ($array as $value) {
-            if ($value[0] === "\0") {
+            if (is_string($value) && strlen($value) > 0 && $value[0] === "\0") {
                 $arguments[] = $container->offsetGet(mb_substr($value, 1));
             } else {
                 $arguments[] = $value;
