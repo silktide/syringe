@@ -66,7 +66,7 @@ class ContainerBuilder
 
         foreach ($compiledConfig->getAliases() as $alias => $service) {
             $container[$alias] = function () use ($container, $service) {
-                return $container->offsetGet($service);
+                return $container->offsetGet(mb_substr($service, 1));
             };
         }
 
