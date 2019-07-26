@@ -236,10 +236,10 @@ class ReferenceResolverTest extends TestCase
     }
 
     /**
-     * @param $name
-     * @param $value
+     * @param string $name
+     * @param string $value
      */
-    private function setEnvVar($name, $value)
+    private function setEnvVar(string $name, string $value)
     {
         putenv($name . "=" . $value);
     }

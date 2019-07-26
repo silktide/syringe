@@ -15,7 +15,7 @@ class YamlLoader implements LoaderInterface
 
     public function __construct(bool $useSymfony = false)
     {
-        $this->hasSymfony = class_exists('Symfony\Component\Yaml\Yaml') && method_exists('Symfony\Component\Yaml\Yaml', 'parse');
+        $this->hasSymfony = class_exists(Yaml::class) && method_exists(Yaml::class, 'parse');
         $this->hasExtension = function_exists("yaml_parse");
 
         if (!$this->hasSymfony && !$this->hasExtension) {

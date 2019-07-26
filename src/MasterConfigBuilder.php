@@ -110,7 +110,6 @@ class MasterConfigBuilder
 
     /**
      * @param string $file
-     * @param array $paths
      * @return array
      * @throws LoaderException
      */
@@ -122,6 +121,6 @@ class MasterConfigBuilder
             }
         }
 
-        throw new \Exception("Unable to load file '{$file}'");
+        throw new LoaderException("Unable to load file '{$file}'");
     }
 }

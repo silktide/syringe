@@ -18,7 +18,7 @@ class ContainerBuilder
         // Do the parameters!
         //
         foreach ($compiledConfig->getParameters() as $key => $value) {
-            $container[$key] = function () use ($container, $key, $value) {
+            $container[$key] = function () use ($value){
                 return $value;
             };
         }

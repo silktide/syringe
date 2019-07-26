@@ -3,3 +3,4 @@ parameters:
     reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         - '#Function yaml_parse_file not found#'
+        - '#PHPDoc tag @throws with type Psr#'

@@ -88,6 +88,9 @@ class CacheInvalidationTest extends TestCase
 
     public function testConstCacheInvalidation()
     {
+        // Clear the cache
+        exec("php -d xdebug.remote_autostart=0 " . realpath(__DIR__ . "/constant.php"). " clear");
+
         // Testing constants changing is a pain as a constant is... well, constant
         // So we need to push this logic off to a separate process
         $constValue = "const1";
