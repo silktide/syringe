@@ -32,7 +32,9 @@ class Syringe
             "containerClass" => ContainerBuilder::DEFAULT_CONTAINER_CLASS,
             "containerService" => null,
             "cache" => null,
-            "validateCache" => false
+            "validateCache" => false,
+            // We allow the user to set some parameters as part of the config step
+            "parameters" => []
         ];
 
         foreach ($defaults as $key => $value) {
@@ -71,8 +73,8 @@ class Syringe
             $masterConfigBuilder = new MasterConfigBuilder($config["loaders"]);
             $masterConfig = $masterConfigBuilder->load($config["files"], $config["paths"]);
 
-            $compiledConfigBuilder = new CompiledConfigBuilder(new ParameterResolver());
-            $compiledConfig = $compiledConfigBuilder->build($masterConfig);
+            $compiledConfigBuilder = new CompiledConfigBuilder();
+            $compiledConfig = $compiledConfigBuilder->build($masterConfig, $config["parameters"]);
 
             if ($cacheEnabled) {
                 $cache->set($cacheKey, $compiledConfig, new \DateInterval("P365D"));
@@ -83,7 +85,7 @@ class Syringe
             $container = new $config["containerClass"];
         }
 
-        $containerBuilder = new ContainerBuilder(new ParameterResolver());
+        $containerBuilder = new ContainerBuilder();
         $containerBuilder->populateContainer($container, $compiledConfig);
 
         if (!is_null($config["appDirKey"])) {
@@ -99,8 +101,8 @@ class Syringe
 
     protected static function createCacheKey(array $config)
     {
-        $uniqueConfig = array_intersect_key($config, array_flip(["appDir", "paths", "files"]));
-        return "syringe.compiled_config-" . md5(json_encode($uniqueConfig, true));
+        $uniqueConfig = array_intersect_key($config, array_flip(["appDir", "paths", "files", "parameters"]));
+        return "syringe.compiled_config." . md5(serialize($uniqueConfig));
     }
 
     protected static function validateConfig(array $config = [])

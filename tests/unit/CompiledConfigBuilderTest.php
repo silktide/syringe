@@ -12,7 +12,7 @@ class CompiledConfigBuilderTest extends TestCase
 {
     public function testExtendingAbstract()
     {
-        $compiledConfigBuilder = new CompiledConfigBuilder(new ParameterResolver());
+        $compiledConfigBuilder = new CompiledConfigBuilder();
 
         $masterConfig = self::createMock(MasterConfig::class);
         $masterConfig->method("getParameters")->willReturn([]);
@@ -42,7 +42,7 @@ class CompiledConfigBuilderTest extends TestCase
 
     public function testRecursiveExtendingAbstract()
     {
-        $compiledConfigBuilder = new CompiledConfigBuilder(new ParameterResolver());
+        $compiledConfigBuilder = new CompiledConfigBuilder();
 
         $masterConfig = self::createMock(MasterConfig::class);
         $masterConfig->method("getParameters")->willReturn([]);
@@ -89,7 +89,7 @@ class CompiledConfigBuilderTest extends TestCase
 
     public function testTagCreation()
     {
-        $compiledConfigBuilder = new CompiledConfigBuilder(new ParameterResolver());
+        $compiledConfigBuilder = new CompiledConfigBuilder();
 
         $masterConfig = self::createMock(MasterConfig::class);
         $masterConfig->method("getParameters")->willReturn([]);
@@ -125,7 +125,7 @@ class CompiledConfigBuilderTest extends TestCase
 
     public function testExtensions()
     {
-        $compiledConfigBuilder = new CompiledConfigBuilder(new ParameterResolver());
+        $compiledConfigBuilder = new CompiledConfigBuilder();
         $masterConfig = self::createMock(MasterConfig::class);
         $masterConfig->method("getParameters")->willReturn([]);
         $masterConfig->method("getServices")->willReturn([

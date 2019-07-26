@@ -12,13 +12,6 @@ class ContainerBuilder
      */
     const DEFAULT_CONTAINER_CLASS = "Pimple\\Container";
 
-    protected $referenceResolver;
-
-    public function __construct(ParameterResolver $referenceResolver)
-    {
-        $this->referenceResolver = $referenceResolver;
-    }
-
     public function populateContainer(Container $container, CompiledConfig $compiledConfig)
     {
         //

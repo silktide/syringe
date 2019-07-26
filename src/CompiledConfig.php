@@ -10,15 +10,19 @@ class CompiledConfig
     protected $aliases;
     protected $parameters;
     protected $tags;
-    protected $fileStateCollection;
 
-    public function __construct(array $services, array $aliases, array $parameters, array $tags, FileStateCollection $fileStateCollection)
-    {
-        $this->services = $services;
-        $this->aliases = $aliases;
-        $this->parameters = $parameters;
-        $this->tags = $tags;
-        $this->fileStateCollection = $fileStateCollection;
+    protected $fileState;
+    protected $envState;
+    protected $constState;
+
+    public function __construct(array $config) {
+        $this->services = $config["services"] ?? [];
+        $this->aliases = $config["aliases"] ?? [];
+        $this->parameters = $config["parameters"] ?? [];
+        $this->tags = $config["tags"] ?? [];
+        $this->fileState = $config["state"]["files"] ?? FileStateCollection::build([]);
+        $this->envState = $config["state"]["envVars"] ?? [];
+        $this->constState = $config["state"]["constants"] ?? [];
     }
 
     /**
@@ -58,6 +62,20 @@ class CompiledConfig
      */
     public function isValid() : bool
     {
-        return $this->fileStateCollection->isValid();
+        // Verify that the environment variables haven't changed
+        foreach ($this->envState as $key => $originalValue) {
+            if (getenv($key) !== $originalValue) {
+                return false;
+            }
+        }
+
+        // Verify that the constant variables haven't changed
+        foreach ($this->constState as $key => $originalValue) {
+            if (!defined($key) || constant($key) !== $originalValue) {
+                return false;
+            }
+        }
+
+        return $this->fileState->isValid();
     }
 }

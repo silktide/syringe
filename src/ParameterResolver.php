@@ -11,6 +11,9 @@ class ParameterResolver
 {
     private const ESCAPED_TOKEN = "||ESCAPED_TOKEN||";
 
+    protected $resolvedConstants = [];
+    protected $resolvedEnvVars = [];
+
     public function resolveArray(array $parameters, array $array)
     {
         foreach ($array as $k => $v) {
@@ -82,7 +85,7 @@ class ParameterResolver
         return $this->replaceSurroundingToken($parameter, Token::CONSTANT_CHAR, function($value) { //} use (&$resolvedConstants) {
             if (defined($value)) {
                 $const = constant($value);
-//                $resolvedConstants[$value] = $const;
+                $this->resolvedConstants[$value] = $const;
                 return $const;
             }
 
@@ -99,7 +102,7 @@ class ParameterResolver
         return $this->replaceSurroundingToken($parameter, Token::ENV_CHAR, function($value) {// use (&$resolvedEnvs) {
 
             if (($env = getenv($value)) !== false) {
-                //$resolvedEnvs[$value] = $env;
+                $this->resolvedEnvVars[$value] = $env;
                 return $env;
             }
 
@@ -139,5 +142,15 @@ class ParameterResolver
         }
 
         return str_replace(self::ESCAPED_TOKEN, $token, $parameter);
+    }
+
+    public function getResolvedConstants() : array
+    {
+        return $this->resolvedConstants;
+    }
+
+    public function getResolvedEnvVars() : array
+    {
+        return $this->resolvedEnvVars;
     }
 }

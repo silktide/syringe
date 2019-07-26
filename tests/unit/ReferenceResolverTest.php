@@ -89,7 +89,6 @@ class ReferenceResolverTest extends TestCase
     {
         $parameters = [];
         $parameters["parameter_key"] = "parameter_value";
-        //$this->container["parameter_key"] = function(){return "parameter_value";};
         $value = $this->referenceResolver->resolve($parameters, Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR);
         $this->assertEquals("parameter_value", $value);
     }
@@ -107,8 +106,6 @@ class ReferenceResolverTest extends TestCase
         $parameters = [];
         $parameters["parameter_key"] = Token::PARAMETER_CHAR . "parameter_key_2" . Token::PARAMETER_CHAR;
         $parameters["parameter_key_2"] = "parameter_value";
-        //$this->container["parameter_key"] = function(){return Token::PARAMETER_CHAR . "parameter_key_2" . Token::PARAMETER_CHAR;};
-        //$this->container["parameter_key_2"] = function(){return "parameter_value";};
         $value = $this->referenceResolver->resolve($parameters, Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR);
         $this->assertEquals("parameter_value", $value);
     }
