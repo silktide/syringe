@@ -45,6 +45,10 @@ class Syringe
 
         $config = self::validateConfig($config);
 
+        if (!is_null($config["appDirKey"])) {
+            $config["parameters"][$config["appDirKey"]] = $config["appDir"];
+        }
+
         $cacheEnabled = false;
         $cacheKey = null;
         if (!is_null($cache = $config["cache"])) {
@@ -85,16 +89,12 @@ class Syringe
             $container = new $config["containerClass"];
         }
 
-        $containerBuilder = new ContainerBuilder();
-        $containerBuilder->populateContainer($container, $compiledConfig);
-
-        if (!is_null($config["appDirKey"])) {
-            $container[$config["appDirKey"]] = $config["appDir"];
-        }
-
         if (!is_null($config["serviceLocatorKey"])) {
             $container[$config["serviceLocatorKey"]] = new ServiceLocator($container);
         }
+
+        $containerBuilder = new ContainerBuilder();
+        $containerBuilder->populateContainer($container, $compiledConfig);
 
         return $container;
     }

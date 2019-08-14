@@ -1,11 +1,8 @@
 <?php
 
-
 namespace Silktide\Syringe;
 
-
 use Silktide\Syringe\Exception\ConfigException;
-use Silktide\Syringe\Tests\ReferenceResolverTest;
 
 class CompiledConfigBuilder
 {

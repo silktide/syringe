@@ -1,0 +1,5 @@
+services:
+  example:
+    class: Silktide\Syringe\IntegrationTests\ServiceLocator\ExampleClass
+    arguments:
+      - "@service.locator"
