@@ -1,0 +1,17 @@
+services:
+  service_array:
+    class: Silktide\Syringe\IntegrationTests\ServiceArray\ServiceArray
+    arguments:
+      -
+        - "@example1"
+        - "@example2"
+
+  example1:
+    class: Silktide\Syringe\IntegrationTests\Examples\ExampleClass
+    arguments:
+      - "foo"
+
+  example2:
+    class: Silktide\Syringe\IntegrationTests\Examples\ExampleClass
+    arguments:
+      - "bar"

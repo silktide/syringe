@@ -204,6 +204,10 @@ class FileConfig
                 if (strlen($definition["factoryService"]) === 0) {
                     throw new ConfigException("Service '{$serviceName}' references a factoryService but doesn't provide one");
                 }
+
+                if (empty($definition["factoryMethod"])) {
+                    throw new ConfigException("Service '{$serviceName}' uses a factoryService but does not define a factoryMethod");
+                }
             }
 
             if (!empty($definition["factoryClass"])) {

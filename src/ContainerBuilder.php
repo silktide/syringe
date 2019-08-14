@@ -69,11 +69,13 @@ class ContainerBuilder
     protected function resolveArray(Container $container, array $array)
     {
         $arguments = [];
-        foreach ($array as $value) {
+        foreach ($array as $k => $value) {
             if (is_string($value) && strlen($value) > 0 && $value[0] === "\0") {
-                $arguments[] = $container->offsetGet(mb_substr($value, 1));
+                $arguments[$k] = $container->offsetGet(mb_substr($value, 1));
+            } elseif (is_array($value)) {
+                $arguments[$k] = $this->resolveArray($container, $value);
             } else {
-                $arguments[] = $value;
+                $arguments[$k] = $value;
             }
         }
         return $arguments;
