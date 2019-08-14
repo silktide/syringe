@@ -7,7 +7,7 @@ namespace Silktide\Syringe\Tests;
 use PHPUnit\Framework\TestCase;
 use Pimple\Container;
 use Silktide\Syringe\Exception\ConfigException;
-use Silktide\Syringe\ReferenceResolver;
+use Silktide\Syringe\ParameterResolver;
 use Silktide\Syringe\Token;
 
 class ReferenceResolverTest extends TestCase
@@ -20,14 +20,14 @@ class ReferenceResolverTest extends TestCase
     protected $container;
 
     /**
-     * @var ReferenceResolver
+     * @var ParameterResolver
      */
     protected $referenceResolver;
 
     public function setUp()
     {
         $this->container = new Container();
-        $this->referenceResolver = new ReferenceResolver();
+        $this->referenceResolver = new ParameterResolver();
     }
 
     public function testRegularConstantResolve()
@@ -35,7 +35,7 @@ class ReferenceResolverTest extends TestCase
         define("foo", "bar");
         
         $value = $this->referenceResolver->resolve(
-            $this->container,
+            [],
             Token::CONSTANT_CHAR . "foo". Token::CONSTANT_CHAR
         );
         $this->assertEquals("bar", $value);
@@ -44,7 +44,7 @@ class ReferenceResolverTest extends TestCase
     public function testClassConstantResolve()
     {
         $value = $this->referenceResolver->resolve(
-            $this->container,
+            [],
             Token::CONSTANT_CHAR . "Silktide\\Syringe\\Tests\\ReferenceResolverTest::EXAMPLE_TEST". Token::CONSTANT_CHAR
         );
         $this->assertEquals("example_result", $value);
@@ -55,13 +55,13 @@ class ReferenceResolverTest extends TestCase
      */
     public function testConstantNonExistentResolve()
     {
-        $this->referenceResolver->resolve($this->container,Token::CONSTANT_CHAR . "bar". Token::CONSTANT_CHAR);
+        $this->referenceResolver->resolve([],Token::CONSTANT_CHAR . "bar". Token::CONSTANT_CHAR);
     }
 
     public function testEnvironmentResolve()
     {
         $this->setEnvVar("banana", "salad");
-        $value = $this->referenceResolver->resolve($this->container, Token::ENV_CHAR . "banana" . Token::ENV_CHAR);
+        $value = $this->referenceResolver->resolve([], Token::ENV_CHAR . "banana" . Token::ENV_CHAR);
         $this->assertEquals("salad", $value);
     }
 
@@ -69,7 +69,7 @@ class ReferenceResolverTest extends TestCase
     public function testFalseEnvironmentResolve()
     {
         $this->setEnvVar("chips", false);
-        $value = $this->referenceResolver->resolve($this->container, Token::ENV_CHAR . "chips" . Token::ENV_CHAR);
+        $value = $this->referenceResolver->resolve([], Token::ENV_CHAR . "chips" . Token::ENV_CHAR);
         $this->assertEquals(false, $value);
         // Herein lies the rub, environment variables do not understant the concept of true or false, so it'll change it
         // to in this case, ''
@@ -82,13 +82,14 @@ class ReferenceResolverTest extends TestCase
      */
     public function testFailedEnvironmentResolve()
     {
-        $this->referenceResolver->resolve($this->container, Token::ENV_CHAR . "chicken" . Token::ENV_CHAR);
+        $this->referenceResolver->resolve([], Token::ENV_CHAR . "chicken" . Token::ENV_CHAR);
     }
 
     public function testParameterResolve()
     {
-        $this->container["parameter_key"] = function(){return "parameter_value";};
-        $value = $this->referenceResolver->resolve($this->container, Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR);
+        $parameters = [];
+        $parameters["parameter_key"] = "parameter_value";
+        $value = $this->referenceResolver->resolve($parameters, Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR);
         $this->assertEquals("parameter_value", $value);
     }
 
@@ -97,22 +98,25 @@ class ReferenceResolverTest extends TestCase
      */
     public function testFailedParameterResolve()
     {
-        $this->referenceResolver->resolve($this->container, Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR);
+        $this->referenceResolver->resolve([], Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR);
     }
 
     public function testRecursiveParameterResolve()
     {
-        $this->container["parameter_key"] = function(){return Token::PARAMETER_CHAR . "parameter_key_2" . Token::PARAMETER_CHAR;};
-        $this->container["parameter_key_2"] = function(){return "parameter_value";};
-        $value = $this->referenceResolver->resolve($this->container, Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR);
+        $parameters = [];
+        $parameters["parameter_key"] = Token::PARAMETER_CHAR . "parameter_key_2" . Token::PARAMETER_CHAR;
+        $parameters["parameter_key_2"] = "parameter_value";
+        $value = $this->referenceResolver->resolve($parameters, Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR);
         $this->assertEquals("parameter_value", $value);
     }
 
     public function testParameterArrayResolve()
     {
-        $this->container["parameter_key"] = function(){return "parameter_value";};
-        $this->container["parameter_key_2"] = function(){return "parameter_value_2";};
-        $array = $this->referenceResolver->resolveArray($this->container, [
+        $parameters = [];
+        $parameters["parameter_key"] = "parameter_value";
+        $parameters["parameter_key_2"] = "parameter_value_2";
+
+        $array = $this->referenceResolver->resolveArray($parameters, [
             "foo" => Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR,
             "bar" => Token::PARAMETER_CHAR . "parameter_key_2" . Token::PARAMETER_CHAR
         ]);
@@ -121,9 +125,11 @@ class ReferenceResolverTest extends TestCase
 
     public function testRecursiveParameterArrayResolve()
     {
-        $this->container["parameter_key"] = function(){return "parameter_value";};
-        $this->container["parameter_key_2"] = function(){return "parameter_value_2";};
-        $array = $this->referenceResolver->resolveArray($this->container, [
+        $parameters = [];
+        $parameters["parameter_key"] = "parameter_value";
+        $parameters["parameter_key_2"] = "parameter_value_2";
+
+        $array = $this->referenceResolver->resolveArray($parameters, [
             "foo" => [
                 Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR,
                 Token::PARAMETER_CHAR . "parameter_key_2" . Token::PARAMETER_CHAR
@@ -140,8 +146,8 @@ class ReferenceResolverTest extends TestCase
 
     public function testResolveNull()
     {
-        $this->container["parameter_key"] = function(){return null;};
-        $array = $this->referenceResolver->resolveArray($this->container, [
+        $parameters = ["parameter_key" => null];
+        $array = $this->referenceResolver->resolveArray($parameters, [
             Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR
         ]);
 
@@ -155,8 +161,8 @@ class ReferenceResolverTest extends TestCase
      */
     public function testArrayConcatenationFailure()
     {
-        $this->container["parameter_key"] = function(){ return ["foo", "bar"]; };
-        $this->referenceResolver->resolve($this->container, "foo%parameter_key%");
+        $parameters = ["parameter_key" =>  ["foo", "bar"]];
+        $this->referenceResolver->resolve($parameters, "foo%parameter_key%");
     }
 
     /**
@@ -164,14 +170,17 @@ class ReferenceResolverTest extends TestCase
      */
     public function testNullConcatenationFailure()
     {
+        $parameters = ["parameter_key" => null];
         $this->container["parameter_key"] = function(){ return null; };
-        $this->referenceResolver->resolve($this->container, "foo%parameter_key%");
+        $this->referenceResolver->resolve($parameters, "foo%parameter_key%");
     }
 
     public function testReferencedParameterArray()
     {
-        $this->container["options"] = function(){ return ["foo" => "bar"]; };
-        $array = $this->referenceResolver->resolve($this->container, "%options%");
+        $parameters = [
+            "options" => ["foo" => "bar"]
+        ];
+        $array = $this->referenceResolver->resolve($parameters, "%options%");
         $this->assertSame([
             "foo" => "bar"
         ], $array);
@@ -179,9 +188,12 @@ class ReferenceResolverTest extends TestCase
 
     public function testReferencedParameterArrayResolve()
     {
-        $this->container["options"] = function(){ return ["foo" => "%bar%"]; };
-        $this->container["bar"] = "chicken";
-        $array = $this->referenceResolver->resolve($this->container, "%options%");
+        $parameters = [
+            "options" => ["foo" => "%bar%"],
+            "bar" => "chicken"
+        ];
+
+        $array = $this->referenceResolver->resolve($parameters, "%options%");
         $this->assertSame([
             "foo" => "chicken"
         ], $array);
@@ -214,17 +226,20 @@ class ReferenceResolverTest extends TestCase
      */
     public function testParameterEscapedResolve($parameter, $expected)
     {
-        $this->container["my_key_1"] = function(){return "my_value_1";};
-        $this->container["my_key_2"] = function(){return "my_value_2";};
-        $value = $this->referenceResolver->resolve($this->container, $parameter);
+        $parameters = [
+            "my_key_1" => "my_value_1",
+            "my_key_2" => "my_value_2"
+        ];
+
+        $value = $this->referenceResolver->resolve($parameters, $parameter);
         $this->assertSame($expected, $value);
     }
 
     /**
-     * @param $name
-     * @param $value
+     * @param string $name
+     * @param string $value
      */
-    private function setEnvVar($name, $value)
+    private function setEnvVar(string $name, string $value)
     {
         putenv($name . "=" . $value);
     }

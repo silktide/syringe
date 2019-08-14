@@ -1,0 +1,2 @@
+parameters:
+  my_param: "%param_value%"

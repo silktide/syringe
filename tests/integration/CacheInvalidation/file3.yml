@@ -1,0 +1,2 @@
+parameters:
+  my_environment_var: "$MY_ENV_VAR$"

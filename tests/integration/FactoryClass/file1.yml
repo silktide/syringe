@@ -1,0 +1,32 @@
+services:
+  factory.service:
+    class: Silktide\Syringe\IntegrationTests\FactoryClass\ExampleFactoryService
+    arguments:
+      - "@service.example"
+      - "#tagtag"
+
+  example.class:
+    class: Silktide\Syringe\IntegrationTests\FactoryClass\ExampleClass
+    factoryService: "@factory.service"
+    factoryMethod: "create"
+
+  service.example:
+    class: Silktide\Syringe\IntegrationTests\FactoryClass\ServiceExample
+
+  example.class.2:
+    class: Silktide\Syringe\IntegrationTests\FactoryClass\ExampleClass
+    factoryClass: Silktide\Syringe\IntegrationTests\FactoryClass\ExampleFactoryClass
+    factoryMethod: "create"
+    arguments:
+      - "@service.example"
+      - "#tagtag"
+
+  TagClass1:
+    class: Silktide\Syringe\IntegrationTests\Examples\TagClass1
+    tags:
+      - "tagtag"
+
+  TagClass2:
+    class: Silktide\Syringe\IntegrationTests\Examples\TagClass2
+    tags:
+      - "tagtag"

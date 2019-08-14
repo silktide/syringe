@@ -1,0 +1,10 @@
+services:
+  TagClass1:
+    class: Silktide\Syringe\IntegrationTests\Examples\TagClass1
+    tags:
+      - "tagtag"
+
+  TagClass2:
+    class: Silktide\Syringe\IntegrationTests\Examples\TagClass2
+    tags:
+      - "tagtag"

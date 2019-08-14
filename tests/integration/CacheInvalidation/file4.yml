@@ -1,0 +1,2 @@
+parameters:
+  my_constant_var: "^MY_CONSTANT_VALUE^"

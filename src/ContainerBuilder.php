@@ -12,25 +12,14 @@ class ContainerBuilder
      */
     const DEFAULT_CONTAINER_CLASS = "Pimple\\Container";
 
-    protected $referenceResolver;
-
-    public function __construct(ReferenceResolver $referenceResolver)
-    {
-        $this->referenceResolver = $referenceResolver;
-    }
-
     public function populateContainer(Container $container, CompiledConfig $compiledConfig)
     {
         //
         // Do the parameters!
         //
         foreach ($compiledConfig->getParameters() as $key => $value) {
-            $container[$key] = function () use ($container, $key, $value) {
-                try {
-                    return $this->referenceResolver->resolve($container, $value);
-                } catch (ReferenceException $e) {
-                    throw new ReferenceException("Error with key '$key'. " . $e->getMessage());
-                }
+            $container[$key] = function () use ($value){
+                return $value;
             };
         }
 
@@ -38,15 +27,12 @@ class ContainerBuilder
             $container[$key] = function () use ($container, $definition) {
                 $isFactoryCreated = isset($definition["factoryMethod"]);
 
-                $arguments = [];
-                if (isset($definition["arguments"])) {
-                    $arguments = $this->referenceResolver->resolveArray($container, $definition["arguments"]);
-                }
+                $arguments = $this->resolveArray($container, $definition["arguments"] ?? []);
 
                 if ($isFactoryCreated) {
                     return call_user_func_array(
                         [
-                            $definition["factoryClass"] ?? $this->referenceResolver->resolve($container, $definition["factoryService"]),
+                            $definition["factoryClass"] ?? $container->offsetGet(mb_substr($definition["factoryService"], 1)),
                             $definition["factoryMethod"]
                         ],
                         $arguments
@@ -58,7 +44,7 @@ class ContainerBuilder
                 foreach ($definition["calls"] ?? [] as $call) {
                     call_user_func_array(
                         [$service, $call["method"]],
-                        isset($call["arguments"]) ? $this->referenceResolver->resolveArray($container, $call["arguments"]) : []
+                        $this->resolveArray($container, $call["arguments"] ?? [])
                     );
                 }
                 return $service;
@@ -73,10 +59,25 @@ class ContainerBuilder
 
         foreach ($compiledConfig->getAliases() as $alias => $service) {
             $container[$alias] = function () use ($container, $service) {
-                return $this->referenceResolver->resolve($container, $service);
+                return $container->offsetGet(mb_substr($service, 1));
             };
         }
 
         return $container;
+    }
+
+    protected function resolveArray(Container $container, array $array)
+    {
+        $arguments = [];
+        foreach ($array as $k => $value) {
+            if (is_string($value) && strlen($value) > 0 && $value[0] === "\0") {
+                $arguments[$k] = $container->offsetGet(mb_substr($value, 1));
+            } elseif (is_array($value)) {
+                $arguments[$k] = $this->resolveArray($container, $value);
+            } else {
+                $arguments[$k] = $value;
+            }
+        }
+        return $arguments;
     }
 }

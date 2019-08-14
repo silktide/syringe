@@ -1,24 +1,25 @@
 <?php
 
-
 namespace Silktide\Syringe;
-
 
 use Silktide\Syringe\Exception\ConfigException;
 
 class CompiledConfigBuilder
 {
-    public function build(MasterConfig $masterConfig)
+    public function build(MasterConfig $masterConfig, array $parameters = [])
     {
+        $parameterResolver = new ParameterResolver();
+
         $abstractServices = [];
         $aliases = [];
 
         $services = $masterConfig->getServices();
-        $parameters = $masterConfig->getParameters();
+        $parameters = array_merge($masterConfig->getParameters(), $parameters);
         // These'll get run too as part of this!
         $extensions = $masterConfig->getExtensions();
         $tags = [];
 
+        // Deal with abstract functions
         foreach ($services as $key => $definition) {
             if (!empty($definition["abstract"])) {
                 $abstractServices[$key] = $definition;
@@ -92,6 +93,36 @@ class CompiledConfigBuilder
             $services[$serviceName]["calls"] = array_merge($services[$serviceName]["calls"] ?? [], $extensionCalls);
         }
 
-        return new CompiledConfig($services, $aliases, $parameters, $tags, FileStateCollection::build($masterConfig->getFilenames()));
+
+        foreach ($parameters as $key => $value) {
+            // Resolve all the parameters up front
+            $parameters[$key] = $parameterResolver->resolve($parameters, $value);
+        }
+
+        foreach ($services as $serviceName => &$definition) {
+            if (isset($definition["arguments"])) {
+                $definition["arguments"] = $parameterResolver->resolveArray($parameters, $definition["arguments"]);
+            }
+
+            if (isset($definition["calls"])) {
+                foreach ($definition["calls"] as &$call) {
+                    if (isset($call["arguments"])) {
+                        $call["arguments"] = $parameterResolver->resolveArray($parameters, $call["arguments"]);
+                    }
+                }
+            }
+        }
+
+        return new CompiledConfig([
+            "services" => $services,
+            "aliases" => $aliases,
+            "parameters" => $parameters,
+            "tags" => $tags,
+            "state" => [
+                "files" => FileStateCollection::build($masterConfig->getFilenames()),
+                "constants" => $parameterResolver->getResolvedConstants(),
+                "envVars" => $parameterResolver->getResolvedEnvVars()
+            ]
+        ]);
     }
 }

@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 use Silktide\Syringe\CompiledConfigBuilder;
 use Silktide\Syringe\FileConfig;
 use Silktide\Syringe\MasterConfig;
+use Silktide\Syringe\ParameterResolver;
 
 class CompiledConfigBuilderTest extends TestCase
 {

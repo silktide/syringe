@@ -45,7 +45,7 @@ class MasterConfigBuilder
      * @throws Exception\ConfigException
      * @throws LoaderException
      */
-    protected function buildFileList(array $files = [], array $paths, bool $inVendor = false) : array
+    protected function buildFileList(array $files, array $paths, bool $inVendor = false) : array
     {
         $returnFiles = [];
         foreach ($files as $namespace => $filenames) {
@@ -57,7 +57,8 @@ class MasterConfigBuilder
             }
 
             foreach ($filenames as $filename) {
-                $data = $this->loadFile($filename, $paths);
+                $filename = $this->findConfigFile($filename, $paths);
+                $data = $this->loadFile($filename);
                 $config = $this->createConfig($filename, $data, $namespace);
 
                 // The first time we enter the vendor directory we should flush the paths. We never want a vendor/syringe.yml
@@ -109,19 +110,17 @@ class MasterConfigBuilder
 
     /**
      * @param string $file
-     * @param array $paths
      * @return array
      * @throws LoaderException
      */
-    protected function loadFile(string &$file, array $paths)
+    protected function loadFile(string $file)
     {
-        $file = $this->findConfigFile($file, $paths);
         foreach ($this->loaders as $loader) {
             if ($loader->supports($file)) {
                 return $loader->loadFile($file);
             }
         }
 
-        throw new \Exception("Unable to load file '{$file}'");
+        throw new LoaderException("Unable to load file '{$file}'");
     }
 }
