@@ -4,6 +4,44 @@ Syringe allows a [Pimple](https://github.com/silexphp/pimple) DI container to be
 
 ``composer require silktide/syringe``
 
+# Changes with Version 3.0
+
+## BC's
+
+Version 3 requires all parameters to be set before we can compile the container, as it resolves all of the parameters up front.
+
+For example, this would work in version 2, but not in 3:
+```yaml
+parameters:
+    foo: "%bar%"
+```
+
+```php
+$container = Syringe::build([
+    "paths" => [__DIR__]
+    "files" => ["file.yml"]
+]);
+$container["bar"] = "chicken";
+```
+
+This would work in version 3:
+```yaml
+parameters:
+    foo: "%bar%"
+```
+
+```php
+Syringe::build([
+    "paths" => [__DIR__]
+    "files" => ["file.yml"],
+    "parameters" => [
+        "bar" => "chicken"
+    ]
+]);
+```
+
+
+ 
 # Changes with Version 2.0
  
 ## Improvements
