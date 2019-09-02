@@ -128,4 +128,49 @@ class CacheInvalidationTest extends TestCase
         ]);
         self::assertSame("value2", $container->offsetGet("my_param"));
     }
+
+
+    public function testAdditionalFileInvalidation()
+    {
+        $cache = new ArrayCachePool();
+
+        $container = Syringe::build([
+            "paths" => [__DIR__],
+            "files" => ["file1.yml"],
+            "cache" => $cache
+        ]);
+
+        self::assertSame("Value_1", $container->offsetGet("my_parameter"));
+
+        $container = Syringe::build([
+            "paths" => [__DIR__],
+            "files" => ["file1.yml", "file2.yml"],
+            "cache" => $cache
+        ]);
+
+        self::assertSame("Value_2", $container->offsetGet("my_parameter"));
+    }
+
+    public function testRemovedFileInvalidation()
+    {
+        $cache = new ArrayCachePool();
+
+
+        $container = Syringe::build([
+            "paths" => [__DIR__],
+            "files" => ["file1.yml", "file2.yml"],
+            "cache" => $cache
+        ]);
+
+        self::assertSame("Value_2", $container->offsetGet("my_parameter"));
+
+        $container = Syringe::build([
+            "paths" => [__DIR__],
+            "files" => ["file1.yml"],
+            "cache" => $cache
+        ]);
+
+        self::assertSame("Value_1", $container->offsetGet("my_parameter"));
+
+    }
 }
