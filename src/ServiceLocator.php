@@ -20,6 +20,11 @@ class ServiceLocator
 
     public function get(string $serviceName)
     {
-        return $this->container[$serviceName];
+        return $this->container->offsetGet($serviceName);
+    }
+
+    public function has(string $serviceName)
+    {
+        return $this->container->offsetExists($serviceName);
     }
 }
