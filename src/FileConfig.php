@@ -247,7 +247,7 @@ class FileConfig
                 $return[$k] = $this->recursivelyNamespace($v);
             }
             return $return;
-        } elseif (strlen($value) > 0) {
+        } elseif (is_string($value) && strlen($value) > 0) {
             if ($value[0] === Token::SERVICE_CHAR) {
                 return Token::SERVICE_CHAR . $this->namespace(mb_substr($value, 1));
             } elseif (mb_strpos($value, Token::PARAMETER_CHAR) !== false) {
