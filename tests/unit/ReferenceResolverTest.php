@@ -24,7 +24,7 @@ class ReferenceResolverTest extends TestCase
      */
     protected $referenceResolver;
 
-    public function setUp()
+    public function setUp() : void
     {
         $this->container = new Container();
         $this->referenceResolver = new ParameterResolver();
@@ -50,11 +50,9 @@ class ReferenceResolverTest extends TestCase
         $this->assertEquals("example_result", $value);
     }
 
-    /**
-     * @expectedException \Silktide\Syringe\Exception\ConfigException
-     */
     public function testConstantNonExistentResolve()
     {
+        $this->expectException(ConfigException::class);
         $this->referenceResolver->resolve([],Token::CONSTANT_CHAR . "bar". Token::CONSTANT_CHAR);
     }
 
@@ -77,11 +75,9 @@ class ReferenceResolverTest extends TestCase
     }
 
 
-    /**
-     * @expectedException \Silktide\Syringe\Exception\ConfigException
-     */
     public function testFailedEnvironmentResolve()
     {
+        $this->expectException(ConfigException::class);
         $this->referenceResolver->resolve([], Token::ENV_CHAR . "chicken" . Token::ENV_CHAR);
     }
 
@@ -93,11 +89,9 @@ class ReferenceResolverTest extends TestCase
         $this->assertEquals("parameter_value", $value);
     }
 
-    /**
-     * @expectedException \Silktide\Syringe\Exception\ConfigException
-     */
     public function testFailedParameterResolve()
     {
+        $this->expectException(ConfigException::class);
         $this->referenceResolver->resolve([], Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR);
     }
 
@@ -156,20 +150,16 @@ class ReferenceResolverTest extends TestCase
         ], $array);
     }
 
-    /**
-     * @expectedException \Silktide\Syringe\Exception\ConfigException
-     */
     public function testArrayConcatenationFailure()
     {
+        $this->expectException(ConfigException::class);
         $parameters = ["parameter_key" =>  ["foo", "bar"]];
         $this->referenceResolver->resolve($parameters, "foo%parameter_key%");
     }
 
-    /**
-     * @expectedException \Silktide\Syringe\Exception\ConfigException
-     */
     public function testNullConcatenationFailure()
     {
+        $this->expectException(ConfigException::class);
         $parameters = ["parameter_key" => null];
         $this->container["parameter_key"] = function(){ return null; };
         $this->referenceResolver->resolve($parameters, "foo%parameter_key%");

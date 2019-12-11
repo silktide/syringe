@@ -5,6 +5,7 @@ namespace Silktide\Syringe\Tests;
 
 
 use PHPUnit\Framework\TestCase;
+use Silktide\Syringe\Exception\ConfigException;
 use Silktide\Syringe\FileConfig;
 
 class FileConfigTest extends TestCase
@@ -68,10 +69,10 @@ class FileConfigTest extends TestCase
 
     /**
      * @dataProvider validationFailureProvider
-     * @expectedException \Silktide\Syringe\Exception\ConfigException
      */
     public function testFailures(array $data, string $reason)
     {
+        $this->expectException(ConfigException::class);
         $fileConfig = new FileConfig("filename.yml", ["services" => ["service" => $data]]);
         $fileConfig->validate();
     }

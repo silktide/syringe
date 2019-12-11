@@ -6,13 +6,14 @@ namespace Silktide\Syringe\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Pimple\Container;
+use Silktide\Syringe\Exception\ReferenceException;
 use Silktide\Syringe\TagCollection;
 
 class TagCollectionTest extends TestCase
 {
     public static $globalState = [];
 
-    public function setUp()
+    public function setUp() : void
     {
         self::$globalState = [];
     }
@@ -64,11 +65,9 @@ class TagCollectionTest extends TestCase
 
     }
 
-    /**
-     * @expectedException \Silktide\Syringe\Exception\ReferenceException
-     */
     public function testGetServiceNameByAliasFailure()
     {
+        $this->expectException(ReferenceException::class);
         $container = new Container();
         $container["service1"] = (function(){TagCollectionTest::$globalState[] = "service1"; return "service1_run";});
         $tagCollection = new TagCollection($container, [
@@ -79,11 +78,9 @@ class TagCollectionTest extends TestCase
     }
 
 
-    /**
-     * @expectedException \Silktide\Syringe\Exception\ReferenceException
-     */
     public function testGetServiceByAliasFailure()
     {
+        $this->expectException(ReferenceException::class);
         $container = new Container();
         $container["service1"] = (function(){TagCollectionTest::$globalState[] = "service1"; return "service1_run";});
         $tagCollection = new TagCollection($container, [

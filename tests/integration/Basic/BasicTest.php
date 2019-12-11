@@ -26,6 +26,19 @@ class BasicTest extends TestCase
         $this->assertEquals("MyService2", $container["my_service_2"]->getFirstArgument());
     }
 
+    public function testBoolAndInt()
+    {
+        $container = Syringe::build([
+            "paths" => [__DIR__],
+            "files" => ["file1.yml"]
+        ]);
+
+        $this->assertInstanceOf(ExampleClass::class, $container["my_service_2"]);
+        $arguments = $container["my_service_2"]->getArguments();
+        self::assertIsBool($arguments[1]);
+        self::assertIsInt($arguments[2]);
+    }
+
     public function testContainerService()
     {
         $containerService = new Container();
@@ -103,11 +116,9 @@ class BasicTest extends TestCase
     }
 
 
-    /**
-     * @expectedException \Silktide\Syringe\Exception\ConfigException
-     */
     public function testIncorrectCache()
     {
+        $this->expectException(ConfigException::class);
         Syringe::build([
             "paths" => [__DIR__],
             "files" => ["file1.yml"],

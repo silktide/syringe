@@ -5,6 +5,7 @@ namespace Silktide\Syringe\Tests\Loader;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit\Framework\TestCase;
+use Silktide\Syringe\Exception\LoaderException;
 use Silktide\Syringe\Loader\PhpLoader;
 
 class PhpLoaderTest extends TestCase
@@ -14,7 +15,7 @@ class PhpLoaderTest extends TestCase
      */
     private $root;
 
-    public function setUp()
+    public function setUp() : void
     {
         $this->root = vfsStream::setup();
     }
@@ -31,11 +32,9 @@ class PhpLoaderTest extends TestCase
         $this->assertEquals($array, $expected);
     }
 
-    /**
-     * @expectedException \Silktide\Syringe\Exception\LoaderException
-     */
     public function testImportFailure()
     {
+        $this->expectException(LoaderException::class);
         $code = '<?php return "bananas";';
         $filename = $this->root->url() . "/example.php";
         file_put_contents($filename, $code);
