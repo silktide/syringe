@@ -24,6 +24,9 @@ class BasicTest extends TestCase
         $this->assertEquals("MyService1", $container["my_service"]->getFirstArgument());
         $this->assertInstanceOf(ExampleClass::class, $container["my_service_2"]);
         $this->assertEquals("MyService2", $container["my_service_2"]->getFirstArgument());
+        $arguments = $container["my_service_2"]->getArguments();
+
+        self::assertSame("potatosalad", $arguments[3]);
     }
 
     public function testBoolAndInt()

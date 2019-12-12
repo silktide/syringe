@@ -10,6 +10,7 @@ services:
       - "%my_parameter_2%"
       - "%my_parameter_3%"
       - "%my_parameter_5%"
+      - "%my_parameter_7%%my_parameter_8%"
 
 parameters:
   my_parameter_2: "MyService2"
@@ -19,3 +20,6 @@ parameters:
 
   my_parameter_5: "%my_parameter_6%"
   my_parameter_6: 5003
+
+  my_parameter_7: "potato"
+  my_parameter_8: "salad"

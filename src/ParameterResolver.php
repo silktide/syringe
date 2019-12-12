@@ -114,7 +114,7 @@ class ParameterResolver
     {
         $oldParameter = $parameter;
 
-        while (mb_substr_count($parameter, $token) > 0) {
+        while (is_string($parameter) && mb_substr_count($parameter, $token) > 0) {
             $pos1 = mb_strpos($parameter, $token);
             $pos2 = mb_strpos($parameter, $token, $pos1 + 1);
 
@@ -126,22 +126,25 @@ class ParameterResolver
             if ($pos2 === false) {
                 throw new ConfigException("An uneven number of '{$token}' token bindings exists for '{$oldParameter}'");
             }
+
             $value = mb_substr($parameter, $pos1 + 1, $pos2 - ($pos1 + 1));
             $newValue = $callable($value);
-            if (!is_string($newValue) && !is_numeric($newValue)) {
-                if (mb_strlen($value) + 2 === mb_strlen($parameter)) {
-                    return $newValue;
-                }
 
+            // If it took up the entire parameter
+            if (($pos1 === 0 && ($pos2 + 1) === mb_strlen($parameter))) {
+                $parameter = $newValue;
+                continue;
+            }
+
+            if (!is_string($newValue) && !is_numeric($newValue)) {
                 throw new ConfigException(
                     "Parameter '{$value}' as part of '{$oldParameter}' resolved to a non-string. This is only permissible if the parameter attempts no interpolation"
                 );
             }
-
             $parameter = mb_substr($parameter, 0, $pos1) . $newValue . mb_substr($parameter, $pos2 + 1);
         }
 
-        return str_replace(self::ESCAPED_TOKEN, $token, $parameter);
+        return is_string($parameter) ? str_replace(self::ESCAPED_TOKEN, $token, $parameter) : $parameter;
     }
 
     public function getResolvedConstants() : array
