@@ -30,16 +30,16 @@ class ContainerBuilder
                 $arguments = $this->resolveArray($container, $definition["arguments"] ?? []);
 
                 if ($isFactoryCreated) {
-                    return call_user_func_array(
+                    $service = call_user_func_array(
                         [
                             $definition["factoryClass"] ?? $container->offsetGet(mb_substr($definition["factoryService"], 1)),
                             $definition["factoryMethod"]
                         ],
                         $arguments
                     );
+                } else {
+                    $service = (new \ReflectionClass($definition["class"]))->newInstanceArgs($arguments);
                 }
-
-                $service = (new \ReflectionClass($definition["class"]))->newInstanceArgs($arguments);
 
                 foreach ($definition["calls"] ?? [] as $call) {
                     call_user_func_array(

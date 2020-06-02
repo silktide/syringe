@@ -8,6 +8,7 @@ class ExampleClass
 {
     protected $serviceExample;
     protected $tagCollection;
+    protected $customParameter;
 
     public function __construct(ServiceExample $serviceExample, iterable $tagCollection)
     {
@@ -23,5 +24,15 @@ class ExampleClass
     public function getTagCollection()
     {
         return $this->tagCollection;
+    }
+
+    public function setCustomParameter(string $customParameter)
+    {
+        $this->customParameter = $customParameter;
+    }
+
+    public function getCustomParameter() : ?string
+    {
+        return $this->customParameter;
     }
 }

@@ -21,7 +21,6 @@ class FileConfig
         "factoryClass" => 1,
         "factoryMethod" => 1,
         "factoryService" => 1,
-        "factoryArguments" => 1,
         "aliasOf" => 1,
         "abstract" => 1,
         "calls" => 1,

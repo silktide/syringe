@@ -23,6 +23,7 @@ class FactoryTest extends TestCase
         $exampleClass = $container->offsetGet("example.class");
         self::assertInstanceOf(ExampleClass::class, $exampleClass);
         self::assertInstanceOf(ServiceExample::class, $exampleClass->getServiceExample());
+        self::assertSame("custom_value", $exampleClass->getCustomParameter());
         foreach ($exampleClass->getTagCollection() as $tag) {
             self::assertInstanceOf(TestTagInterface::class, $tag);
         }
@@ -41,6 +42,7 @@ class FactoryTest extends TestCase
         $exampleClass = $container->offsetGet("example.class.2");
         self::assertInstanceOf(ExampleClass::class, $exampleClass);
         self::assertInstanceOf(ServiceExample::class, $exampleClass->getServiceExample());
+        self::assertSame("custom_value", $exampleClass->getCustomParameter());
         foreach ($exampleClass->getTagCollection() as $tag) {
             self::assertInstanceOf(TestTagInterface::class, $tag);
         }
