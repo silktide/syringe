@@ -25,7 +25,8 @@ class FileConfig
         "abstract" => 1,
         "calls" => 1,
         "tags" => 1,
-        "override" => 1
+        "override" => 1,
+        "lazy" => 1
     ];
 
     protected $filename;
@@ -151,7 +152,7 @@ class FileConfig
     {
         foreach ($this->keys as $key) {
             if (!isset(self::ACCEPTABLE_KEYS[$key])) {
-                throw new ConfigException($key." is not a valid services key");
+                throw new ConfigException($key." is not a valid config key");
             }
         }
 

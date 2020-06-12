@@ -4,19 +4,26 @@ namespace Silktide\Syringe;
 
 use Pimple\Container;
 use Silktide\Syringe\Exception\ReferenceException;
+use ProxyManager\Factory\LazyLoadingValueHolderFactory;
 
 class ContainerBuilder
 {
     /**
      * Default class name for the container
      */
-    const DEFAULT_CONTAINER_CLASS = "Pimple\\Container";
+    const DEFAULT_CONTAINER_CLASS = Container::class;
+
+    private function getLazyLoadingValueHolderFactory() : LazyLoadingValueHolderFactory
+    {
+        static $factory;
+        if (!isset($factory)) {
+            $factory = new LazyLoadingValueHolderFactory();
+        }
+        return $factory;
+    }
 
     public function populateContainer(Container $container, CompiledConfig $compiledConfig)
     {
-        //
-        // Do the parameters!
-        //
         foreach ($compiledConfig->getParameters() as $key => $value) {
             $container[$key] = function () use ($value){
                 return $value;
@@ -24,31 +31,19 @@ class ContainerBuilder
         }
 
         foreach ($compiledConfig->getServices() as $key => $definition) {
-            $container[$key] = function () use ($container, $definition) {
-                $isFactoryCreated = isset($definition["factoryMethod"]);
-
-                $arguments = $this->resolveArray($container, $definition["arguments"] ?? []);
-
-                if ($isFactoryCreated) {
-                    $service = call_user_func_array(
-                        [
-                            $definition["factoryClass"] ?? $container->offsetGet(mb_substr($definition["factoryService"], 1)),
-                            $definition["factoryMethod"]
-                        ],
-                        $arguments
-                    );
-                } else {
-                    $service = (new \ReflectionClass($definition["class"]))->newInstanceArgs($arguments);
-                }
-
-                foreach ($definition["calls"] ?? [] as $call) {
-                    call_user_func_array(
-                        [$service, $call["method"]],
-                        $this->resolveArray($container, $call["arguments"] ?? [])
+            $container[$key] = (function () use ($container, $definition) {
+                if ($definition["lazy"] ?? false) {
+                    return $this->getLazyLoadingValueHolderFactory()->createProxy(
+                        $definition["class"],
+                        function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container, $definition) {
+                            $wrappedObject = $this->buildService($container, $definition);
+                            $initializer = null; // turning off further lazy initialization
+                        }
                     );
                 }
-                return $service;
-            };
+
+                return $this->buildService($container, $definition);
+            });
         }
 
         foreach ($compiledConfig->getTags() as $tag => $services) {
@@ -64,6 +59,33 @@ class ContainerBuilder
         }
 
         return $container;
+    }
+
+    private function buildService(Container $container, array $definition)
+    {
+        $isFactoryCreated = isset($definition["factoryMethod"]);
+
+        $arguments = $this->resolveArray($container, $definition["arguments"] ?? []);
+
+        if ($isFactoryCreated) {
+            $service = call_user_func_array(
+                [
+                    $definition["factoryClass"] ?? $container->offsetGet(mb_substr($definition["factoryService"], 1)),
+                    $definition["factoryMethod"]
+                ],
+                $arguments
+            );
+        } else {
+            $service = (new \ReflectionClass($definition["class"]))->newInstanceArgs($arguments);
+        }
+
+        foreach ($definition["calls"] ?? [] as $call) {
+            call_user_func_array(
+                [$service, $call["method"]],
+                $this->resolveArray($container, $call["arguments"] ?? [])
+            );
+        }
+        return $service;
     }
 
     protected function resolveArray(Container $container, array $array)
