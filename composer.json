@@ -4,7 +4,7 @@
   "license": "MIT",
   "homepage": "https://github.com/silktide/syringe",
   "require": {
-    "php": ">=7.1",
+    "php": ">=7.4",
     "ext-json": "*",
     "pimple/pimple": "~3.0",
     "symfony/yaml": "^2.4|~3|~4",
