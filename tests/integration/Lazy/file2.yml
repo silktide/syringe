@@ -1,0 +1,4 @@
+services:
+  my_service:
+    class: Silktide\Syringe\IntegrationTests\Lazy\LazyClass
+    lazy: false
