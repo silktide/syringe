@@ -25,10 +25,10 @@ class NamespaceTest extends TestCase
          * @var ExampleClass $service
          */
         $service = $container["my_service"];
-        $this->assertSame("from-namespaced", $service->getFirstArgument());
-        $this->assertSame("from-namespaced", $container["my_namespace::my_parameter"]);
-        $this->assertSame("from-file1", $container["my_parameter"]);
-        $this->assertFalse($container->offsetExists("my_service_foo"));
+        self::assertSame("from-namespaced", $service->getFirstArgument());
+        self::assertSame("from-namespaced", $container["my_namespace::my_parameter"]);
+        self::assertSame("from-file1", $container["my_parameter"]);
+        self::assertFalse($container->offsetExists("my_service_foo"));
     }
 
     public function testBasicService()
@@ -45,8 +45,8 @@ class NamespaceTest extends TestCase
          * @var ExampleClass $service
          */
         $service = $container["my_namespace::my_service"];
-        $this->assertSame("from-namespaced-value-2", $service->getFirstArgument());
-        $this->assertFalse($container->offsetExists("my_service_foo"));
+        self::assertSame("from-namespaced-value-2", $service->getFirstArgument());
+        self::assertFalse($container->offsetExists("my_service_foo"));
     }
 
     public function testBasicTag()
@@ -59,8 +59,8 @@ class NamespaceTest extends TestCase
             ]
         ]);
 
-        $this->assertCount(2, ($container["#tag1"])->getServiceNames());
-        $this->assertCount(1, ($container["#tag2"])->getServiceNames());
-        $this->assertSame(["my_namespace::my_service", "my_service"], ($container["#tag1"])->getServiceNames());
+        self::assertCount(2, ($container["#tag1"])->getServiceNames());
+        self::assertCount(1, ($container["#tag2"])->getServiceNames());
+        self::assertSame(["my_namespace::my_service", "my_service"], ($container["#tag1"])->getServiceNames());
     }
 }

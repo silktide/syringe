@@ -120,6 +120,6 @@ class FileConfigTest extends TestCase
     {
         $fileConfig = new FileConfig("filename.yml", ["services" => ["service" => $data]]);
         $fileConfig->validate();
-        $this->assertTrue(true);
+        self::assertTrue(true);
     }
 }

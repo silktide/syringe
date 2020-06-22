@@ -31,15 +31,15 @@ class TagCollectionTest extends TestCase
             ["service" => "service3", "alias" => null]
         ]);
 
-        $this->assertEquals(["service1", "service2", "service3"], $tagCollection->getServiceNames());
+        self::assertEquals(["service1", "service2", "service3"], $tagCollection->getServiceNames());
         // Ensure none of the services are running before we expect them to
-        $this->assertCount(0, self::$globalState);
+        self::assertCount(0, self::$globalState);
 
         // Ensure that the functions are being run as expected
         $i = 0;
         foreach ($tagCollection as $service) {
-            $this->assertTrue(is_string($service));
-            $this->assertCount(++$i, self::$globalState);
+            self::assertTrue(is_string($service));
+            self::assertCount(++$i, self::$globalState);
         }
     }
 
@@ -54,14 +54,14 @@ class TagCollectionTest extends TestCase
 
         ]);
 
-        $this->assertEquals("service1", $tagCollection->getServiceNameByAlias("myservice"));
-        $this->assertCount(0, self::$globalState);
-        $this->assertEquals("service1_run", $tagCollection->getServiceByAlias("myservice"));
-        $this->assertCount(1, self::$globalState);
+        self::assertEquals("service1", $tagCollection->getServiceNameByAlias("myservice"));
+        self::assertCount(0, self::$globalState);
+        self::assertEquals("service1_run", $tagCollection->getServiceByAlias("myservice"));
+        self::assertCount(1, self::$globalState);
 
-        $this->assertEquals("service2", $tagCollection->getServiceNameByAlias("ourservice"));
-        $this->assertEquals("service2_run", $tagCollection->getServiceByAlias("ourservice"));
-        $this->assertCount(2, self::$globalState);
+        self::assertEquals("service2", $tagCollection->getServiceNameByAlias("ourservice"));
+        self::assertEquals("service2_run", $tagCollection->getServiceByAlias("ourservice"));
+        self::assertCount(2, self::$globalState);
 
     }
 

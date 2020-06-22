@@ -40,10 +40,10 @@ class YamlLoaderTest extends TestCase
      */
     public function testDoubleColon($input, $output)
     {
-        $this->assertEquals($output, Yaml::parse($input));
+        self::assertEquals($output, Yaml::parse($input));
 
         if (function_exists("yaml_parse")) {
-            $this->assertEquals($output, yaml_parse($input));
+            self::assertEquals($output, yaml_parse($input));
         }
     }
 }

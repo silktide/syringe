@@ -20,10 +20,10 @@ class BasicTest extends TestCase
             "files" => ["file1.yml"]
         ]);
 
-        $this->assertInstanceOf(ExampleClass::class, $container["my_service"]);
-        $this->assertEquals("MyService1", $container["my_service"]->getFirstArgument());
-        $this->assertInstanceOf(ExampleClass::class, $container["my_service_2"]);
-        $this->assertEquals("MyService2", $container["my_service_2"]->getFirstArgument());
+        self::assertInstanceOf(ExampleClass::class, $container["my_service"]);
+        self::assertEquals("MyService1", $container["my_service"]->getFirstArgument());
+        self::assertInstanceOf(ExampleClass::class, $container["my_service_2"]);
+        self::assertEquals("MyService2", $container["my_service_2"]->getFirstArgument());
         $arguments = $container["my_service_2"]->getArguments();
 
         self::assertSame("potatosalad", $arguments[3]);
@@ -36,7 +36,7 @@ class BasicTest extends TestCase
             "files" => ["file1.yml"]
         ]);
 
-        $this->assertInstanceOf(ExampleClass::class, $container["my_service_2"]);
+        self::assertInstanceOf(ExampleClass::class, $container["my_service_2"]);
         $arguments = $container["my_service_2"]->getArguments();
         self::assertIsBool($arguments[1]);
         self::assertIsInt($arguments[2]);
@@ -54,13 +54,13 @@ class BasicTest extends TestCase
         ]);
 
         // Just test that the basic isn't broken
-        $this->assertInstanceOf(ExampleClass::class, $container["my_service"]);
-        $this->assertEquals("MyService1", $container["my_service"]->getFirstArgument());
-        $this->assertInstanceOf(ExampleClass::class, $container["my_service_2"]);
-        $this->assertEquals("MyService2", $container["my_service_2"]->getFirstArgument());
+        self::assertInstanceOf(ExampleClass::class, $container["my_service"]);
+        self::assertEquals("MyService1", $container["my_service"]->getFirstArgument());
+        self::assertInstanceOf(ExampleClass::class, $container["my_service_2"]);
+        self::assertEquals("MyService2", $container["my_service_2"]->getFirstArgument());
 
         // Test that it did populate the correct container
-        $this->assertSame("bar", $container["foo"]);
+        self::assertSame("bar", $container["foo"]);
     }
 
     /**
@@ -83,8 +83,8 @@ class BasicTest extends TestCase
             "files" => ["file1.yml"],
             "cache" => $cache
         ]);
-        $this->assertInstanceOf(ExampleClass::class, $container["my_service"]);
-        $this->assertEquals("MyService1", $container["my_service"]->getFirstArgument());
+        self::assertInstanceOf(ExampleClass::class, $container["my_service"]);
+        self::assertEquals("MyService1", $container["my_service"]->getFirstArgument());
         unlink($tempFilename);
         copy(__DIR__ . "/file2.yml", $tempFilename);
         $container = Syringe::build([
@@ -93,7 +93,7 @@ class BasicTest extends TestCase
             "cache" => $cache
         ]);
 
-        $this->assertInstanceOf(ExampleClass::class, $container["my_service"]);
+        self::assertInstanceOf(ExampleClass::class, $container["my_service"]);
         unlink($tempFilename);
     }
 
@@ -106,8 +106,8 @@ class BasicTest extends TestCase
             "cache" => $cache
         ]);
 
-        $this->assertInstanceOf(ExampleClass::class, $container["my_service"]);
-        $this->assertEquals("MyService1", $container["my_service"]->getFirstArgument());
+        self::assertInstanceOf(ExampleClass::class, $container["my_service"]);
+        self::assertEquals("MyService1", $container["my_service"]->getFirstArgument());
 
         $container = Syringe::build([
             "paths" => [__DIR__],
@@ -115,7 +115,7 @@ class BasicTest extends TestCase
             "cache" => $cache
         ]);
 
-        $this->assertInstanceOf(ExampleClass::class, $container["my_service_3"]);
+        self::assertInstanceOf(ExampleClass::class, $container["my_service_3"]);
     }
 
 

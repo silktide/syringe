@@ -38,7 +38,7 @@ class ReferenceResolverTest extends TestCase
             [],
             Token::CONSTANT_CHAR . "foo". Token::CONSTANT_CHAR
         );
-        $this->assertEquals("bar", $value);
+        self::assertEquals("bar", $value);
     }
 
     public function testClassConstantResolve()
@@ -47,7 +47,7 @@ class ReferenceResolverTest extends TestCase
             [],
             Token::CONSTANT_CHAR . "Silktide\\Syringe\\Tests\\ReferenceResolverTest::EXAMPLE_TEST". Token::CONSTANT_CHAR
         );
-        $this->assertEquals("example_result", $value);
+        self::assertEquals("example_result", $value);
     }
 
     public function testConstantNonExistentResolve()
@@ -60,7 +60,7 @@ class ReferenceResolverTest extends TestCase
     {
         $this->setEnvVar("banana", "salad");
         $value = $this->referenceResolver->resolve([], Token::ENV_CHAR . "banana" . Token::ENV_CHAR);
-        $this->assertEquals("salad", $value);
+        self::assertEquals("salad", $value);
     }
 
 
@@ -68,10 +68,10 @@ class ReferenceResolverTest extends TestCase
     {
         $this->setEnvVar("chips", false);
         $value = $this->referenceResolver->resolve([], Token::ENV_CHAR . "chips" . Token::ENV_CHAR);
-        $this->assertEquals(false, $value);
+        self::assertEquals(false, $value);
         // Herein lies the rub, environment variables do not understant the concept of true or false, so it'll change it
         // to in this case, ''
-        $this->assertSame('', $value);
+        self::assertSame('', $value);
     }
 
 
@@ -86,7 +86,7 @@ class ReferenceResolverTest extends TestCase
         $parameters = [];
         $parameters["parameter_key"] = "parameter_value";
         $value = $this->referenceResolver->resolve($parameters, Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR);
-        $this->assertEquals("parameter_value", $value);
+        self::assertEquals("parameter_value", $value);
     }
 
     public function testFailedParameterResolve()
@@ -101,7 +101,7 @@ class ReferenceResolverTest extends TestCase
         $parameters["parameter_key"] = Token::PARAMETER_CHAR . "parameter_key_2" . Token::PARAMETER_CHAR;
         $parameters["parameter_key_2"] = "parameter_value";
         $value = $this->referenceResolver->resolve($parameters, Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR);
-        $this->assertEquals("parameter_value", $value);
+        self::assertEquals("parameter_value", $value);
     }
 
     public function testParameterArrayResolve()
@@ -114,7 +114,7 @@ class ReferenceResolverTest extends TestCase
             "foo" => Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR,
             "bar" => Token::PARAMETER_CHAR . "parameter_key_2" . Token::PARAMETER_CHAR
         ]);
-        $this->assertSame(["foo" => "parameter_value", "bar" => "parameter_value_2"], $array);
+        self::assertSame(["foo" => "parameter_value", "bar" => "parameter_value_2"], $array);
     }
 
     public function testRecursiveParameterArrayResolve()
@@ -130,7 +130,7 @@ class ReferenceResolverTest extends TestCase
             ]
         ]);
 
-        $this->assertSame([
+        self::assertSame([
             "foo" => [
                 "parameter_value",
                 "parameter_value_2"
@@ -145,7 +145,7 @@ class ReferenceResolverTest extends TestCase
             Token::PARAMETER_CHAR . "parameter_key" . Token::PARAMETER_CHAR
         ]);
 
-        $this->assertSame([
+        self::assertSame([
             null,
         ], $array);
     }
@@ -171,7 +171,7 @@ class ReferenceResolverTest extends TestCase
             "options" => ["foo" => "bar"]
         ];
         $array = $this->referenceResolver->resolve($parameters, "%options%");
-        $this->assertSame([
+        self::assertSame([
             "foo" => "bar"
         ], $array);
     }
@@ -184,7 +184,7 @@ class ReferenceResolverTest extends TestCase
         ];
 
         $array = $this->referenceResolver->resolve($parameters, "%options%");
-        $this->assertSame([
+        self::assertSame([
             "foo" => "chicken"
         ], $array);
     }
@@ -222,7 +222,7 @@ class ReferenceResolverTest extends TestCase
         ];
 
         $value = $this->referenceResolver->resolve($parameters, $parameter);
-        $this->assertSame($expected, $value);
+        self::assertSame($expected, $value);
     }
 
     /**

@@ -29,7 +29,7 @@ class PhpLoaderTest extends TestCase
         file_put_contents($filename, $code);
         $phpLoader = new PhpLoader();
         $array = $phpLoader->loadFile($filename);
-        $this->assertEquals($array, $expected);
+        self::assertEquals($array, $expected);
     }
 
     public function testImportFailure()
@@ -46,13 +46,13 @@ class PhpLoaderTest extends TestCase
     {
         $filename = $this->root->url() . "/example.php";
         $phpLoader = new PhpLoader();
-        $this->assertTrue($phpLoader->supports($filename));
+        self::assertTrue($phpLoader->supports($filename));
     }
 
     public function testFilenameFailure()
     {
         $filename = $this->root->url() . "/example.json";
         $phpLoader = new PhpLoader();
-        $this->assertFalse($phpLoader->supports($filename));
+        self::assertFalse($phpLoader->supports($filename));
     }
 }

@@ -32,7 +32,7 @@ class CompiledConfigBuilderTest extends TestCase
         ]);
         $compiledConfig = $compiledConfigBuilder->build($masterConfig);
 
-        $this->assertSame([
+        self::assertSame([
             "class" => "FakeClass",
             "arguments" => [
                 "argument1"
@@ -72,7 +72,7 @@ class CompiledConfigBuilderTest extends TestCase
         ]);
         $compiledConfig = $compiledConfigBuilder->build($masterConfig);
 
-        $this->assertEquals([
+        self::assertEquals([
             "class" => "FakeClass",
             "arguments" => [
                 "argument1"
@@ -111,7 +111,7 @@ class CompiledConfigBuilderTest extends TestCase
         ]);
         $compiledConfig = $compiledConfigBuilder->build($masterConfig);
 
-        $this->assertEquals([
+        self::assertEquals([
             [
                 "service" => "service1",
                 "alias" => ""
@@ -159,7 +159,7 @@ class CompiledConfigBuilderTest extends TestCase
         ]);
         $compiledConfig = $compiledConfigBuilder->build($masterConfig);
 
-        $this->assertEquals([
+        self::assertEquals([
             "service1" => [
                 "class" => "FakeClass",
                 "calls" => [

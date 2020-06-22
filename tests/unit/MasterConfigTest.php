@@ -30,7 +30,7 @@ class MasterConfigTest extends TestCase
         }
 
         $parameters = $masterConfig->getParameters();
-        $this->assertSame("file_".$maxFiles, $parameters["overwritten_key"]);
+        self::assertSame("file_".$maxFiles, $parameters["overwritten_key"]);
     }
 
     public function testParameterWeightOrder()
@@ -55,7 +55,7 @@ class MasterConfigTest extends TestCase
         ]));
 
         $parameters = $masterConfig->getParameters();
-        $this->assertSame("weight_10", $parameters["overwritten"]);
+        self::assertSame("weight_10", $parameters["overwritten"]);
     }
     /**
      * @param array $namespacedParameters

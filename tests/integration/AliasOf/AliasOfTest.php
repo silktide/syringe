@@ -20,13 +20,13 @@ class AliasOfTest extends TestCase
             "files" => ["file1.yml"]
         ]);
 
-        $this->assertInstanceOf(ExampleClass::class, $container["my_service"]);
-        $this->assertEquals("MyService1", $container["my_service"]->getFirstArgument());
+        self::assertInstanceOf(ExampleClass::class, $container["my_service"]);
+        self::assertEquals("MyService1", $container["my_service"]->getFirstArgument());
 
-        $this->assertInstanceOf(ExampleClass::class, $container["my_service_2"]);
-        $this->assertEquals("MyService2", $container["my_service_2"]->getFirstArgument());
+        self::assertInstanceOf(ExampleClass::class, $container["my_service_2"]);
+        self::assertEquals("MyService2", $container["my_service_2"]->getFirstArgument());
 
-        $this->assertInstanceOf(ExampleClass::class, $container["my_service_3"]);
-        $this->assertEquals("MyService2", $container["my_service_3"]->getFirstArgument());
+        self::assertInstanceOf(ExampleClass::class, $container["my_service_3"]);
+        self::assertEquals("MyService2", $container["my_service_3"]->getFirstArgument());
     }
 }

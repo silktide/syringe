@@ -26,10 +26,10 @@ class LazyTest extends TestCase
          * @var LazyClass $myService
          */
         $myService = $container["my_service"];
-        $this->assertInstanceOf(LazyClass::class, $myService);
-        $this->assertFalse(LazyClass::$loaded);
+        self::assertInstanceOf(LazyClass::class, $myService);
+        self::assertFalse(LazyClass::$loaded);
         $myService->getTrue();
-        $this->assertTrue(LazyClass::$loaded);
+        self::assertTrue(LazyClass::$loaded);
     }
 
     public function testNonLazyLoading()
@@ -39,12 +39,12 @@ class LazyTest extends TestCase
             "files" => ["file2.yml"]
         ]);
 
-        $this->assertFalse(LazyClass::$loaded);
+        self::assertFalse(LazyClass::$loaded);
         /**
          * @var LazyClass $myService
          */
         $myService = $container["my_service"];
-        $this->assertTrue(LazyClass::$loaded);
-        $this->assertInstanceOf(LazyClass::class, $myService);
+        self::assertTrue(LazyClass::$loaded);
+        self::assertInstanceOf(LazyClass::class, $myService);
     }
 }

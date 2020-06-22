@@ -35,7 +35,7 @@ class CacheInvalidationTest extends TestCase
             "validateCache" => true
         ]);
 
-        $this->assertEquals("Value_1", $container["my_parameter"]);
+        self::assertEquals("Value_1", $container["my_parameter"]);
 
         // We need to sleep as we pay attention to filemtime
         sleep(1);
@@ -47,7 +47,7 @@ class CacheInvalidationTest extends TestCase
             "validateCache" => true
         ]);
 
-        $this->assertEquals("Value_2", $container["my_parameter"]);
+        self::assertEquals("Value_2", $container["my_parameter"]);
 
         unlink($tempFilename);
     }
