@@ -3,7 +3,6 @@
 namespace Silktide\Syringe;
 
 use Pimple\Container;
-use Silktide\Syringe\Exception\ReferenceException;
 use ProxyManager\Factory\LazyLoadingValueHolderFactory;
 
 class ContainerBuilder
@@ -13,13 +12,11 @@ class ContainerBuilder
      */
     const DEFAULT_CONTAINER_CLASS = Container::class;
 
-    private function getLazyLoadingValueHolderFactory() : LazyLoadingValueHolderFactory
+    private $lazyLoadingValueHolderFactory;
+
+    public function __construct(LazyLoadingValueHolderFactory $lazyLoadingValueHolderFactory)
     {
-        static $factory;
-        if (!isset($factory)) {
-            $factory = new LazyLoadingValueHolderFactory();
-        }
-        return $factory;
+        $this->lazyLoadingValueHolderFactory = $lazyLoadingValueHolderFactory;
     }
 
     public function populateContainer(Container $container, CompiledConfig $compiledConfig)
@@ -33,7 +30,7 @@ class ContainerBuilder
         foreach ($compiledConfig->getServices() as $key => $definition) {
             $container[$key] = (function () use ($container, $definition) {
                 if ($definition["lazy"] ?? false) {
-                    return $this->getLazyLoadingValueHolderFactory()->createProxy(
+                    return $this->lazyLoadingValueHolderFactory->createProxy(
                         $definition["class"],
                         function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container, $definition) {
                             $wrappedObject = $this->buildService($container, $definition);

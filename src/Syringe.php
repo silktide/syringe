@@ -3,6 +3,10 @@
 namespace Silktide\Syringe;
 
 use Pimple\Container;
+use ProxyManager\Configuration;
+use ProxyManager\Factory\LazyLoadingValueHolderFactory;
+use ProxyManager\FileLocator\FileLocator;
+use ProxyManager\GeneratorStrategy\FileWriterGeneratorStrategy;
 use Psr\SimpleCache\CacheInterface;
 use Silktide\Syringe\Exception\ConfigException;
 use Silktide\Syringe\Loader\JsonLoader;
@@ -93,7 +97,20 @@ class Syringe
             $container[$config["serviceLocatorKey"]] = new ServiceLocator($container);
         }
 
-        $containerBuilder = new ContainerBuilder();
+        if (!file_exists($config["cacheDir"])) {
+            mkdir($config["cacheDir"]);
+        }
+
+        // This can be potentially optimised as none of this will need to be built unless someone is actually using
+        // the lazy functionality. I suspect that
+        $proxyConfig = new Configuration();
+        $fileLocator = new FileLocator($config["cacheDir"]);
+        $proxyConfig->setGeneratorStrategy(new FileWriterGeneratorStrategy($fileLocator));
+        $proxyConfig->setProxiesTargetDir($config["cacheDir"]);
+        spl_autoload_register($proxyConfig->getProxyAutoloader());
+        $factory = new LazyLoadingValueHolderFactory($proxyConfig);
+
+        $containerBuilder = new ContainerBuilder($factory);
         $containerBuilder->populateContainer($container, $compiledConfig);
 
         return $container;
@@ -130,7 +147,7 @@ class Syringe
         }
 
         // check the class is a container
-        if ($containerClass != ContainerBuilder::DEFAULT_CONTAINER_CLASS && !is_subclass_of($containerClass, ContainerBuilder::DEFAULT_CONTAINER_CLASS)) {
+        if (!is_a($containerClass, ContainerBuilder::DEFAULT_CONTAINER_CLASS, true)) {
             throw new ConfigException(sprintf("The class '%s' is not a subclass of '%s'", $containerClass, ContainerBuilder::DEFAULT_CONTAINER_CLASS));
         }
     }

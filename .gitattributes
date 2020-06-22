@@ -1,4 +1,4 @@
-/tests  export-ignore
-/phpunit.xml  export-ignore
-/phpstan.neon  export-ignore
+/tests          export-ignore
+/phpunit.xml    export-ignore
+/phpstan.neon   export-ignore
 /.silktide.yml  export-ignore
