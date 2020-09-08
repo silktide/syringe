@@ -93,23 +93,32 @@ class CompiledConfigBuilder
             $services[$serviceName]["calls"] = array_merge($services[$serviceName]["calls"] ?? [], $extensionCalls);
         }
 
-
+        // It's possible for nothing to be tagged with a specific tag, but for that to be requested by another service
+        // As such, if someone has a request for a tag, we should always make sure that that tag exists
+        $tagMap = [];
         foreach ($parameters as $key => $value) {
             // Resolve all the parameters up front
-            $parameters[$key] = $parameterResolver->resolve($parameters, $value);
+            $parameters[$key] = $parameterResolver->resolve($parameters, $value, $tagMap);
         }
 
         foreach ($services as $serviceName => &$definition) {
             if (isset($definition["arguments"])) {
-                $definition["arguments"] = $parameterResolver->resolveArray($parameters, $definition["arguments"]);
+                $definition["arguments"] = $parameterResolver->resolveArray($parameters, $definition["arguments"], $tagMap);
             }
 
             if (isset($definition["calls"])) {
                 foreach ($definition["calls"] as &$call) {
                     if (isset($call["arguments"])) {
-                        $call["arguments"] = $parameterResolver->resolveArray($parameters, $call["arguments"]);
+                        $call["arguments"] = $parameterResolver->resolveArray($parameters, $call["arguments"], $tagMap);
                     }
                 }
+            }
+        }
+        unset($definition);
+
+        foreach ($tagMap as $name => $_) {
+            if (!isset($tags[$name])) {
+                $tags[$name] = [];
             }
         }
 

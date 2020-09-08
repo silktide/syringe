@@ -1,0 +1,13 @@
+services:
+  my_service:
+    class: Silktide\Syringe\IntegrationTests\Examples\ExampleClass
+    arguments:
+      - "#untagged"
+
+  my_service2:
+    class: Silktide\Syringe\IntegrationTests\Examples\ExampleClass
+    calls:
+      - method: setValue
+        arguments:
+          - "vegetable"
+          - "#sweetcorn"

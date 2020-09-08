@@ -14,15 +14,15 @@ class ParameterResolver
     protected $resolvedConstants = [];
     protected $resolvedEnvVars = [];
 
-    public function resolveArray(array $parameters, array $array)
+    public function resolveArray(array $parameters, array $array, array &$tagMap)
     {
         foreach ($array as $k => $v) {
-            $array[$k] = is_array($v) ? $this->resolveArray($parameters, $v) : $this->resolve($parameters, $v);
+            $array[$k] = is_array($v) ? $this->resolveArray($parameters, $v, $tagMap) : $this->resolve($parameters, $v, $tagMap);
         }
         return $array;
     }
 
-    public function resolve(array $parameters, $parameter)
+    public function resolve(array $parameters, $parameter, array &$tagMap)
     {
         if (!is_string($parameter) || strlen($parameter) === 0) {
             return $parameter;
@@ -38,13 +38,14 @@ class ParameterResolver
                 return "\0" . mb_substr($parameter, 1);
 
             case Token::TAG_CHAR:
+                $tagMap[mb_substr($parameter, 1)] = true;
                 return "\0" . $parameter;
         }
 
         $parameter = $this->replaceParameters($parameters, $parameter);
         if (!is_string($parameter)) {
             if (is_array($parameter)) {
-                return $this->resolveArray($parameters, $parameter);
+                return $this->resolveArray($parameters, $parameter, $tagMap);
             }
             return $parameter;
         }
@@ -52,7 +53,7 @@ class ParameterResolver
         $parameter = $this->replaceConstants($parameter);
         if (!is_string($parameter)) {
             if (is_array($parameter)) {
-                return $this->resolveArray($parameters, $parameter);
+                return $this->resolveArray($parameters, $parameter, $tagMap);
             }
             return $parameter;
         }
@@ -82,7 +83,7 @@ class ParameterResolver
             return $parameter;
         }
 
-        return $this->replaceSurroundingToken($parameter, Token::CONSTANT_CHAR, function($value) { //} use (&$resolvedConstants) {
+        return $this->replaceSurroundingToken($parameter, Token::CONSTANT_CHAR, function($value) {
             if (defined($value)) {
                 $const = constant($value);
                 $this->resolvedConstants[$value] = $const;
@@ -93,13 +94,13 @@ class ParameterResolver
         });
     }
 
-    protected function replaceEnvironment(string $parameter, array &$resolvedEnvs = [])
+    protected function replaceEnvironment(string $parameter)
     {
         if (mb_strpos($parameter, Token::ENV_CHAR) === false) {
             return $parameter;
         }
 
-        return $this->replaceSurroundingToken($parameter, Token::ENV_CHAR, function($value) {// use (&$resolvedEnvs) {
+        return $this->replaceSurroundingToken($parameter, Token::ENV_CHAR, function($value) {
 
             if (($env = getenv($value)) !== false) {
                 $this->resolvedEnvVars[$value] = $env;
