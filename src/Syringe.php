@@ -12,6 +12,7 @@ use Silktide\Syringe\Exception\ConfigException;
 use Silktide\Syringe\Loader\JsonLoader;
 use Silktide\Syringe\Loader\PhpLoader;
 use Silktide\Syringe\Loader\YamlLoader;
+use Exception;
 
 class Syringe
 {
@@ -97,16 +98,23 @@ class Syringe
             $container[$config["serviceLocatorKey"]] = new ServiceLocator($container);
         }
 
-        if (!file_exists($config["cacheDir"])) {
-            mkdir($config["cacheDir"]);
+        $cacheDir = $config["cacheDir"];
+
+        if (!file_exists($cacheDir)) {
+            if (@mkdir($cacheDir) !== true && !is_dir($cacheDir)) {
+                // This is to guard against race conditions where concurrent processes try to create the directory
+                // at the same time
+                $error = error_get_last();
+                throw new Exception(sprintf('Failed to create "%s", error message is "%s".', $cacheDir, $error['message']), 0, null);
+            }
         }
 
         // This can be potentially optimised as none of this will need to be built unless someone is actually using
         // the lazy functionality. I suspect that
         $proxyConfig = new Configuration();
-        $fileLocator = new FileLocator($config["cacheDir"]);
+        $fileLocator = new FileLocator($cacheDir);
         $proxyConfig->setGeneratorStrategy(new FileWriterGeneratorStrategy($fileLocator));
-        $proxyConfig->setProxiesTargetDir($config["cacheDir"]);
+        $proxyConfig->setProxiesTargetDir($cacheDir);
         spl_autoload_register($proxyConfig->getProxyAutoloader());
         $factory = new LazyLoadingValueHolderFactory($proxyConfig);
 
