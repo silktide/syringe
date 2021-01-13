@@ -326,6 +326,49 @@ services:
         extends: "@factoriedService"    # imports both the factory config and the "setLogger" call
 ```
 
+### Lazy Services
+
+Dependency injection can lead to excessive generation of objects that can have expensive initialisation logic but aren't
+actually used. As such, syringe offers native support for [ProxyManager](https://github.com/Ocramius/ProxyManager)
+
+```yml
+services:
+  	runner:
+		class: MyRunner
+		arguments:
+			- "@expensiveService"
+		
+	expensiveService:
+		class: MyExpensiveClass
+		lazy: true
+```
+
+This will inject a proxy object for expensiveService that is indistinguishable to MyExpensiveClass to the code, but
+prevents it from being loaded un-necessarily 
+
+#### Lazy Skip Destructor
+
+If a service has a `__destruct`, ProxyManager will create the service just to ensure that the __destruct logic is
+triggered as expected. This feels counter intuitive but it is the right default behaviour.
+
+However, if you're just performing cleanup from your object, it isn't really desired to create an object just to have to
+perform the cleanup from doing so.
+
+As such, we provide the `lazySkipDestruct` property to allow us to overcome this behaviour
+
+```yml
+services:
+  	runner:
+		class: MyRunner
+		arguments:
+			- "@expensiveService"
+		
+	expensiveService:
+		class: MyExpensiveClass
+		lazy: true
+		lazySkipDestruct: true
+```
+
 ## Imports
 
 When your object graph becomes large enough, it is often useful to split your configuration into separate files; keeping related parameters and services together. This can be done by using the `imports` key:
