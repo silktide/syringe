@@ -1,0 +1,5 @@
+services:
+  my_service:
+    class: Silktide\Syringe\IntegrationTests\Lazy\LazyDestructorClass
+    lazy: true
+    lazySkipDestruct: true

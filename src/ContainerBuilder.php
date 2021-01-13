@@ -28,11 +28,25 @@ class ContainerBuilder
         }
 
         foreach ($compiledConfig->getServices() as $key => $definition) {
+            //
+            // Here lies some interesting behaviour!
+            // Because we feed $container into the closure, this increments the refcount for the container!
+            //
+            // This means that if you unset the $container, anything held in the container won't be garbage collected
+            // until the next full garbage collection sweep as it ends up with recursive references
+            //
+            // While there may be a better way of handling this, it isn't worth the current research and implementation,
+            // especially given that Containers tend to be around for the life of the application
+            //
             $container[$key] = (function () use ($container, $definition) {
                 if ($definition["lazy"] ?? false) {
                     return $this->lazyLoadingValueHolderFactory->createProxy(
                         $definition["class"],
                         function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container, $definition) {
+                            if (($definition["lazySkipDestruct"] ?? false) && $method === "__destruct") {
+                                $wrappedObject = new class {public function __destruct(){}};
+                                return;
+                            }
                             $wrappedObject = $this->buildService($container, $definition);
                             $initializer = null; // turning off further lazy initialization
                         }

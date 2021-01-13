@@ -26,7 +26,8 @@ class FileConfig
         "calls" => 1,
         "tags" => 1,
         "override" => 1,
-        "lazy" => 1
+        "lazy" => 1,
+        "lazySkipDestruct" => 1
     ];
 
     protected $filename;

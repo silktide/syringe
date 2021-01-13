@@ -12,6 +12,7 @@ use Silktide\Syringe\Exception\ConfigException;
 use Silktide\Syringe\Loader\JsonLoader;
 use Silktide\Syringe\Loader\PhpLoader;
 use Silktide\Syringe\Loader\YamlLoader;
+use Silktide\Syringe\Exception\LoaderException;
 use Exception;
 
 class Syringe
@@ -20,7 +21,7 @@ class Syringe
      * @param array $config
      * @return Container
      * @throws ConfigException
-     * @throws Exception\LoaderException
+     * @throws LoaderException
      * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public static function build(array $config)
