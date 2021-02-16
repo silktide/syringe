@@ -111,29 +111,47 @@ class ParameterResolver
         });
     }
 
-    protected function replaceSurroundingToken(string $parameter, string $token, callable $callable)
+    protected function replaceSurroundingToken(string $parameter, string $token, callable $callable, array $stack = [])
     {
         $oldParameter = $parameter;
 
         while (is_string($parameter) && mb_substr_count($parameter, $token) > 0) {
+            // The passStack keeps track of what parameters we've had to resolve on this parameter and passes this
+            // down to ensure that we don't end up trying to do any recursive resolution
+            $passStack = $stack;
+
+            // Find the first entry in the parameter
             $pos1 = mb_strpos($parameter, $token);
             $pos2 = mb_strpos($parameter, $token, $pos1 + 1);
 
+            // If they are next to each other, then they're escaped tokens and should be ignored
             if ($pos2 === $pos1 + 1) {
                 $parameter = mb_substr($parameter, 0, $pos1) . self::ESCAPED_TOKEN . mb_substr($parameter, $pos2 + 1);
                 continue;
             }
 
+            // If there's only one token, then someone has screwed up the config
             if ($pos2 === false) {
                 throw new ConfigException("An uneven number of '{$token}' token bindings exists for '{$oldParameter}'");
             }
 
+            // Get the value of the parameter, so with '%foo_bar% salad' this should return 'foo_bar'
             $value = mb_substr($parameter, $pos1 + 1, $pos2 - ($pos1 + 1));
-            $newValue = $callable($value);
 
+            if (in_array($value, $stack, true)) {
+                throw new ConfigException("Infinite parameter loop detected: " . implode(" -> ", $stack));
+            }
+
+            // Add that we've resolved this key to the passStack
+            $passStack[] = $value;
+            $newValue = $callable($value);
             // If it took up the entire parameter
             if (($pos1 === 0 && ($pos2 + 1) === mb_strlen($parameter))) {
-                $parameter = $newValue;
+                if (is_string($newValue)) {
+                    $parameter = $this->replaceSurroundingToken($newValue, $token, $callable, $passStack);
+                } else {
+                    $parameter = $newValue;
+                }
                 continue;
             }
 
@@ -142,7 +160,8 @@ class ParameterResolver
                     "Parameter '{$value}' as part of '{$oldParameter}' resolved to a non-string. This is only permissible if the parameter attempts no interpolation"
                 );
             }
-            $parameter = mb_substr($parameter, 0, $pos1) . $newValue . mb_substr($parameter, $pos2 + 1);
+            //$parameter = ;
+            $parameter = mb_substr($parameter, 0, $pos1) . $this->replaceSurroundingToken($newValue, $token, $callable, $passStack) . mb_substr($parameter, $pos2 + 1);
         }
 
         return is_string($parameter) ? str_replace(self::ESCAPED_TOKEN, $token, $parameter) : $parameter;
