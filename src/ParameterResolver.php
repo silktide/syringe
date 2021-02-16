@@ -160,8 +160,8 @@ class ParameterResolver
                     "Parameter '{$value}' as part of '{$oldParameter}' resolved to a non-string. This is only permissible if the parameter attempts no interpolation"
                 );
             }
-            //$parameter = ;
-            $parameter = mb_substr($parameter, 0, $pos1) . $this->replaceSurroundingToken($newValue, $token, $callable, $passStack) . mb_substr($parameter, $pos2 + 1);
+
+            $parameter = \mb_substr($parameter, 0, $pos1) . $this->replaceSurroundingToken($newValue, $token, $callable, $passStack) . \mb_substr($parameter, $pos2 + 1);
         }
 
         return is_string($parameter) ? str_replace(self::ESCAPED_TOKEN, $token, $parameter) : $parameter;
