@@ -237,26 +237,26 @@ class FileConfig
 
     protected function isNamespaced(string $key)
     {
-        return mb_strpos($key, Token::NAMESPACE_SEPARATOR) !== false;
+        return \mb_strpos($key, Token::NAMESPACE_SEPARATOR) !== false;
     }
 
     protected function recursivelyNamespace($value)
     {
-        if (is_array($value)) {
+        if (\is_array($value)) {
             $return = [];
             foreach ($value as $k => $v) {
                 $return[$k] = $this->recursivelyNamespace($v);
             }
             return $return;
-        } elseif (is_string($value) && strlen($value) > 0) {
+        } elseif (\is_string($value) && \strlen($value) > 0) {
             if ($value[0] === Token::SERVICE_CHAR) {
                 return Token::SERVICE_CHAR . $this->namespace(mb_substr($value, 1));
-            } elseif (mb_strpos($value, Token::PARAMETER_CHAR) !== false) {
+            } elseif (\mb_strpos($value, Token::PARAMETER_CHAR) !== false) {
                 $replacements = [];
                 $n = 0;
-                while (mb_substr_count($value, Token::PARAMETER_CHAR) > 1) {
-                    $pos1 = mb_strpos($value, Token::PARAMETER_CHAR);
-                    $pos2 = mb_strpos($value, Token::PARAMETER_CHAR, $pos1 + 1);
+                while (\mb_substr_count($value, Token::PARAMETER_CHAR) > 1) {
+                    $pos1 = \mb_strpos($value, Token::PARAMETER_CHAR);
+                    $pos2 = \mb_strpos($value, Token::PARAMETER_CHAR, $pos1 + 1);
 
                     $placeholder = '|||'.$n.'|||';
 
@@ -265,12 +265,12 @@ class FileConfig
                         $this->namespace(mb_substr($value, $pos1 + 1, $pos2 - ($pos1 + 1))) .
                         Token::PARAMETER_CHAR;
 
-                    $value = mb_substr($value, 0, $pos1) . $placeholder . mb_substr($value, $pos2 + 1);
+                    $value = \mb_substr($value, 0, $pos1) . $placeholder . \mb_substr($value, $pos2 + 1);
                     $n++;
                 }
 
                 foreach ($replacements as $search => $replace) {
-                    $value = str_replace($search, $replace, $value);
+                    $value = \str_replace($search, $replace, $value);
                 }
             }
         }

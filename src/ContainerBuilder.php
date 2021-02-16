@@ -103,9 +103,9 @@ class ContainerBuilder
     {
         $arguments = [];
         foreach ($array as $k => $value) {
-            if (is_string($value) && strlen($value) > 0 && $value[0] === "\0") {
-                $arguments[$k] = $container->offsetGet(mb_substr($value, 1));
-            } elseif (is_array($value)) {
+            if (\is_string($value) && \strlen($value) > 0 && $value[0] === "\0") {
+                $arguments[$k] = $container->offsetGet(\mb_substr($value, 1));
+            } elseif (\is_array($value)) {
                 $arguments[$k] = $this->resolveArray($container, $value);
             } else {
                 $arguments[$k] = $value;

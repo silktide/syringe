@@ -6,6 +6,7 @@
   "require": {
     "php": ">=7.4",
     "ext-json": "*",
+    "ext-mbstring": "*",
     "pimple/pimple": "~3.0",
     "symfony/yaml": "^2.4|~3|~4|~5",
     "psr/simple-cache": "^1.0",
