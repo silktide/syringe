@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Silktide\Syringe\Tests\Loader;
-
 
 use PHPStan\Testing\TestCase;
 use Symfony\Component\Yaml\Yaml;
