@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Silktide\Syringe\Tests;
-
 
 use PHPUnit\Framework\TestCase;
 use Silktide\Syringe\Exception\ConfigException;

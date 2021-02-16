@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Silktide\Syringe\Tests\Container;
-
 
 use Pimple\Container;
 

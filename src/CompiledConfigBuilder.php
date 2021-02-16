@@ -98,7 +98,9 @@ class CompiledConfigBuilder
         $tagMap = [];
         foreach ($parameters as $key => $value) {
             // Resolve all the parameters up front
-            $parameters[$key] = $parameterResolver->resolve($parameters, $value, $tagMap);
+            $parameters[$key] = is_array($value) ?
+                $parameterResolver->resolveArray($parameters, $value, $tagMap) :
+                $parameterResolver->resolve($parameters, $value, $tagMap);
         }
 
         foreach ($services as $serviceName => &$definition) {

@@ -1,0 +1,8 @@
+parameters:
+  my_parameter_1: "%my_parameter_2% salad"
+  my_parameter_2: "%my_parameter_3%"
+  my_parameter_3: "%my_parameter_4%"
+  my_parameter_4: "%my_parameter_5%"
+  my_parameter_5: "%my_parameter_6%"
+  my_parameter_6: "%my_parameter_7%"
+  my_parameter_7: "%my_parameter_1% foo"

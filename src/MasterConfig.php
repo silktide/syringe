@@ -8,10 +8,10 @@ use Silktide\Syringe\Exception\ConfigException;
 
 class MasterConfig
 {
-    protected $filenames = [];
-    protected $services = [];
-    protected $parameters = [];
-    protected $extensions = [];
+    protected array $filenames = [];
+    protected array $services = [];
+    protected array $parameters = [];
+    protected array $extensions = [];
 
     public function addFileConfig(FileConfig $fileConfig)
     {
@@ -71,9 +71,8 @@ class MasterConfig
      * Unfortunately, all of PHPs underlying sorting is done by QuickSort, so we have to do the sorting ourselves
      *
      * @param array $array
-     * @return array
      */
-    protected function stableWeightSort(array &$array)
+    protected function stableWeightSort(array &$array) : void
     {
         foreach ($array as $i => &$value) {
             $value["key"] = $i;

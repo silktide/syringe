@@ -17,14 +17,14 @@ class ParameterResolver
     public function resolveArray(array $parameters, array $array, array &$tagMap)
     {
         foreach ($array as $k => $v) {
-            $array[$k] = is_array($v) ? $this->resolveArray($parameters, $v, $tagMap) : $this->resolve($parameters, $v, $tagMap);
+            $array[$k] = \is_array($v) ? $this->resolveArray($parameters, $v, $tagMap) : $this->resolve($parameters, $v, $tagMap);
         }
         return $array;
     }
 
     public function resolve(array $parameters, $parameter, array &$tagMap)
     {
-        if (!is_string($parameter) || strlen($parameter) === 0) {
+        if (!\is_string($parameter) || \strlen($parameter) === 0) {
             return $parameter;
         }
 
@@ -35,24 +35,24 @@ class ParameterResolver
                 return $parameter;
 
             case Token::SERVICE_CHAR:
-                return "\0" . mb_substr($parameter, 1);
+                return "\0" . \mb_substr($parameter, 1);
 
             case Token::TAG_CHAR:
-                $tagMap[mb_substr($parameter, 1)] = true;
+                $tagMap[\mb_substr($parameter, 1)] = true;
                 return "\0" . $parameter;
         }
 
         $parameter = $this->replaceParameters($parameters, $parameter);
-        if (!is_string($parameter)) {
-            if (is_array($parameter)) {
+        if (!\is_string($parameter)) {
+            if (\is_array($parameter)) {
                 return $this->resolveArray($parameters, $parameter, $tagMap);
             }
             return $parameter;
         }
 
         $parameter = $this->replaceConstants($parameter);
-        if (!is_string($parameter)) {
-            if (is_array($parameter)) {
+        if (!\is_string($parameter)) {
+            if (\is_array($parameter)) {
                 return $this->resolveArray($parameters, $parameter, $tagMap);
             }
             return $parameter;
@@ -63,13 +63,13 @@ class ParameterResolver
 
     protected function replaceParameters(array $parameters, string $parameter)
     {
-        if (mb_strpos($parameter, Token::PARAMETER_CHAR) === false) {
+        if (\mb_strpos($parameter, Token::PARAMETER_CHAR) === false) {
             return $parameter;
         }
 
         return $this->replaceSurroundingToken($parameter, Token::PARAMETER_CHAR, function($value) use ($parameters) {
             // We need array_key_exists for if a value has been set as null, but isset is far far faster than array_key_exists
-            if (isset($parameters[$value]) || array_key_exists($value, $parameters)) {
+            if (isset($parameters[$value]) || \array_key_exists($value, $parameters)) {
                 return $parameters[$value];
             }
 
@@ -79,7 +79,7 @@ class ParameterResolver
 
     protected function replaceConstants(string $parameter, array &$resolvedConstants = [])
     {
-        if (mb_strpos($parameter, Token::CONSTANT_CHAR) === false) {
+        if (\mb_strpos($parameter, Token::CONSTANT_CHAR) === false) {
             return $parameter;
         }
 
@@ -96,12 +96,11 @@ class ParameterResolver
 
     protected function replaceEnvironment(string $parameter)
     {
-        if (mb_strpos($parameter, Token::ENV_CHAR) === false) {
+        if (\mb_strpos($parameter, Token::ENV_CHAR) === false) {
             return $parameter;
         }
 
         return $this->replaceSurroundingToken($parameter, Token::ENV_CHAR, function($value) {
-
             if (($env = getenv($value)) !== false) {
                 $this->resolvedEnvVars[$value] = $env;
                 return $env;
@@ -111,41 +110,60 @@ class ParameterResolver
         });
     }
 
-    protected function replaceSurroundingToken(string $parameter, string $token, callable $callable)
+    protected function replaceSurroundingToken(string $parameter, string $token, callable $callable, array $stack = [])
     {
         $oldParameter = $parameter;
 
-        while (is_string($parameter) && mb_substr_count($parameter, $token) > 0) {
-            $pos1 = mb_strpos($parameter, $token);
-            $pos2 = mb_strpos($parameter, $token, $pos1 + 1);
+        while (\is_string($parameter) && \mb_substr_count($parameter, $token) > 0) {
+            // The passStack keeps track of what parameters we've had to resolve on this parameter and passes this
+            // down to ensure that we don't end up trying to do any recursive resolution
+            $passStack = $stack;
 
+            // Find the first entry in the parameter
+            $pos1 = \mb_strpos($parameter, $token);
+            $pos2 = \mb_strpos($parameter, $token, $pos1 + 1);
+
+            // If they are next to each other, then they're escaped tokens and should be ignored
             if ($pos2 === $pos1 + 1) {
-                $parameter = mb_substr($parameter, 0, $pos1) . self::ESCAPED_TOKEN . mb_substr($parameter, $pos2 + 1);
+                $parameter = \mb_substr($parameter, 0, $pos1) . self::ESCAPED_TOKEN . \mb_substr($parameter, $pos2 + 1);
                 continue;
             }
 
+            // If there's only one token, then someone has screwed up the config
             if ($pos2 === false) {
                 throw new ConfigException("An uneven number of '{$token}' token bindings exists for '{$oldParameter}'");
             }
 
-            $value = mb_substr($parameter, $pos1 + 1, $pos2 - ($pos1 + 1));
-            $newValue = $callable($value);
+            // Get the value of the parameter, so with '%foo_bar% salad' this should return 'foo_bar'
+            $value = \mb_substr($parameter, $pos1 + 1, $pos2 - ($pos1 + 1));
 
+            if (in_array($value, $stack, true)) {
+                throw new ConfigException("Infinite parameter loop detected: " . implode(" -> ", $stack));
+            }
+
+            // Add that we've resolved this key to the passStack
+            $passStack[] = $value;
+            $newValue = $callable($value);
             // If it took up the entire parameter
-            if (($pos1 === 0 && ($pos2 + 1) === mb_strlen($parameter))) {
-                $parameter = $newValue;
+            if (($pos1 === 0 && ($pos2 + 1) === \mb_strlen($parameter))) {
+                if (\is_string($newValue)) {
+                    $parameter = $this->replaceSurroundingToken($newValue, $token, $callable, $passStack);
+                } else {
+                    $parameter = $newValue;
+                }
                 continue;
             }
 
-            if (!is_string($newValue) && !is_numeric($newValue)) {
+            if (!\is_string($newValue) && !\is_numeric($newValue)) {
                 throw new ConfigException(
                     "Parameter '{$value}' as part of '{$oldParameter}' resolved to a non-string. This is only permissible if the parameter attempts no interpolation"
                 );
             }
-            $parameter = mb_substr($parameter, 0, $pos1) . $newValue . mb_substr($parameter, $pos2 + 1);
+
+            $parameter = \mb_substr($parameter, 0, $pos1) . $this->replaceSurroundingToken($newValue, $token, $callable, $passStack) . \mb_substr($parameter, $pos2 + 1);
         }
 
-        return is_string($parameter) ? str_replace(self::ESCAPED_TOKEN, $token, $parameter) : $parameter;
+        return \is_string($parameter) ? \str_replace(self::ESCAPED_TOKEN, $token, $parameter) : $parameter;
     }
 
     public function getResolvedConstants() : array

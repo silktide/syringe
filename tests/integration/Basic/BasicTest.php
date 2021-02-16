@@ -29,6 +29,18 @@ class BasicTest extends TestCase
         self::assertSame("potatosalad", $arguments[3]);
     }
 
+    public function testArray()
+    {
+        $container = Syringe::build([
+            "paths" => [__DIR__],
+            "files" => ["file1.yml"]
+        ]);
+
+        self::assertSame(["fridge", "magnet"], $container["my_parameter_9"]);
+
+        self::assertSame(["potato", ["salad"]], $container["my_parameter_10"]);
+    }
+
     public function testBoolAndInt()
     {
         $container = Syringe::build([

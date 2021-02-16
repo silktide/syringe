@@ -7,10 +7,10 @@ use Silktide\Syringe\Exception\ReferenceException;
 
 class TagCollection implements \Iterator
 {
-    private $position = 0;
-    protected $services = [];
-    protected $aliases = [];
-    protected $container;
+    private int $position = 0;
+    protected array $services = [];
+    protected array $aliases = [];
+    protected Container $container;
 
     public function __construct(Container $container, array $services)
     {

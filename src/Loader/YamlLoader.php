@@ -9,9 +9,9 @@ use Symfony\Component\Yaml\Yaml;
 
 class YamlLoader implements LoaderInterface
 {
-    protected $hasSymfony;
-    protected $hasExtension;
-    protected $forceSymfony;
+    protected bool $hasSymfony;
+    protected bool $hasExtension;
+    protected bool $forceSymfony;
 
     public function __construct(bool $useSymfony = false)
     {

@@ -23,3 +23,11 @@ parameters:
 
   my_parameter_7: "potato"
   my_parameter_8: "salad"
+
+  my_parameter_9:
+    - "fridge"
+    - "magnet"
+
+  my_parameter_10:
+    - "%my_parameter_7%"
+    - ["%my_parameter_8%"]

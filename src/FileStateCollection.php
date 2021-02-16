@@ -4,7 +4,7 @@ namespace Silktide\Syringe;
 
 class FileStateCollection
 {
-    protected $state = [];
+    protected array $state = [];
 
     public function __construct(array $filenames)
     {
