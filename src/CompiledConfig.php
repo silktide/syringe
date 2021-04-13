@@ -15,7 +15,8 @@ class CompiledConfig
     protected $envState;
     protected $constState;
 
-    public function __construct(array $config) {
+    public function __construct(array $config)
+    {
         $this->services = $config["services"] ?? [];
         $this->aliases = $config["aliases"] ?? [];
         $this->parameters = $config["parameters"] ?? [];

@@ -42,14 +42,6 @@ class ParameterResolver
                 return "\0" . $parameter;
         }
 
-        $parameter = $this->replaceParameters($parameters, $parameter);
-        if (!\is_string($parameter)) {
-            if (\is_array($parameter)) {
-                return $this->resolveArray($parameters, $parameter, $tagMap);
-            }
-            return $parameter;
-        }
-
         $parameter = $this->replaceConstants($parameter);
         if (!\is_string($parameter)) {
             if (\is_array($parameter)) {
@@ -58,7 +50,14 @@ class ParameterResolver
             return $parameter;
         }
 
-        return $this->replaceEnvironment($parameter);
+        $parameter = $this->replaceEnvironment($parameter);
+
+        $parameter = $this->replaceParameters($parameters, $parameter);
+        if (!\is_string($parameter) && \is_array($parameter)) {
+            return $this->resolveArray($parameters, $parameter, $tagMap);
+        }
+
+        return $parameter;
     }
 
     protected function replaceParameters(array $parameters, string $parameter)
