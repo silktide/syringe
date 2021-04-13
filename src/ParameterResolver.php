@@ -42,23 +42,30 @@ class ParameterResolver
                 return "\0" . $parameter;
         }
 
-        $parameter = $this->replaceParameters($parameters, $parameter);
-        if (!\is_string($parameter)) {
-            if (\is_array($parameter)) {
-                return $this->resolveArray($parameters, $parameter, $tagMap);
-            }
-            return $parameter;
-        }
+        // Todo: We should readdress this in the future
+        // If we have a string like this:
+        // %foo_bar_^ENVIRONMENT_$ENVIRONMENT$^%
+        // We should be resolving from the inside out, e.g:
+        //   - $ENVIRONMENT$ -> 'dev' -> %url_^ENVIRONMENT_dev^%
+        //   - ^ENVIRONMENT_DEV^ -> 'development' -> %foo_bar_development%
+        //   - %foo_bar_development% -> 'dev.service.com'
 
+        // replaceEnvironment should only ever return back a string
+        $parameter = $this->replaceEnvironment($parameter);
+
+        // Both constants and parameters can return an array, so we need to check it before trying to further
+        // resolve
         $parameter = $this->replaceConstants($parameter);
-        if (!\is_string($parameter)) {
-            if (\is_array($parameter)) {
-                return $this->resolveArray($parameters, $parameter, $tagMap);
-            }
-            return $parameter;
+
+        if (\is_string($parameter)) {
+            $parameter = $this->replaceParameters($parameters, $parameter);
         }
 
-        return $this->replaceEnvironment($parameter);
+        if (!\is_string($parameter) && \is_array($parameter)) {
+            return $this->resolveArray($parameters, $parameter, $tagMap);
+        }
+
+        return $parameter;
     }
 
     protected function replaceParameters(array $parameters, string $parameter)
