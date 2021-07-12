@@ -1,0 +1,5 @@
+imports:
+  - file1.yml
+
+parameters:
+  my_parameter: "OverwrittenValue"

@@ -73,16 +73,19 @@ class MasterConfigBuilder
                     $internalPaths[] = mb_substr($filename, 0, $pos);
                 }
 
+                // Todo: It seems to me that the only difference between imports and inherit is singular vs plural
+                // This seems like a poor reason for a separate keyword and codepath
                 if (!is_null($inherit = $config->getInherit())) {
                     $inherited = $this->buildFileList([$namespace => $inherit], $internalPaths, $fileInVendor);
                     $returnFiles = array_merge($returnFiles, $inherited);
                 }
 
-                $returnFiles[] = $config;
-
                 if (count($imports = $config->getImports()) > 0){
-                    $returnFiles = array_merge($returnFiles, $this->buildFileList([$namespace => array_values($imports)], $internalPaths, $fileInVendor));
+                    $imported = $this->buildFileList([$namespace => array_values($imports)], $internalPaths, $fileInVendor);
+                    $returnFiles = array_merge($returnFiles, $imported);
                 }
+
+                $returnFiles[] = $config;
             }
         }
 
