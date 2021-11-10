@@ -14,10 +14,12 @@ class ParameterResolver
     protected $resolvedConstants = [];
     protected $resolvedEnvVars = [];
 
-    public function resolveArray(array $parameters, array $array, array &$tagMap)
+    public function resolveArray(array $parameters, array $array, array &$tagMap, array &$resolvedParameters = [])
     {
         foreach ($array as $k => $v) {
-            $array[$k] = \is_array($v) ? $this->resolveArray($parameters, $v, $tagMap) : $this->resolve($parameters, $v, $tagMap);
+            $array[$k] = \is_array($v) ?
+                $this->resolveArray($parameters, $v, $tagMap, $resolvedParameters) :
+                $this->resolve($parameters, $v, $tagMap, $resolvedParameters);
         }
         return $array;
     }
@@ -49,16 +51,28 @@ class ParameterResolver
         //   - $ENVIRONMENT$ -> 'dev' -> %url_^ENVIRONMENT_dev^%
         //   - ^ENVIRONMENT_DEV^ -> 'development' -> %foo_bar_development%
         //   - %foo_bar_development% -> 'dev.service.com'
-
-        // replaceEnvironment should only ever return back a string
-        $parameter = $this->replaceEnvironment($parameter);
-
-        // Both constants and parameters can return an array, so we need to check it before trying to further
-        // resolve
-        $parameter = $this->replaceConstants($parameter);
+        //
+        // Hello! I'm Doug of the future!
+        // I take issue with this, as it misses the key problem we have here. Take *this* example set of strings
+        // environmentId: '$ENVIRONMENT$'
+        // name: '%environmentId%-1'
+        //
+        // This is a more significant problem in day to day usage of this library
+        //
 
         if (\is_string($parameter)) {
             $parameter = $this->replaceParameters($parameters, $parameter);
+
+            if (\is_string($parameter)) {
+                // replaceEnvironment should only ever return back a string
+                $parameter = $this->replaceEnvironment($parameter);
+
+                // Both constants and parameters can return an array, so we need to check it before trying to further
+                // resolve
+                if (\is_string($parameter)) {
+                    $parameter = $this->replaceConstants($parameter);
+                }
+            }
         }
 
         if (!\is_string($parameter) && \is_array($parameter)) {

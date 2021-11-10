@@ -1,3 +1,0 @@
-parameters:
-  my_parameter_dev: "my_value"
-  my_environment_parameter: "%my_parameter_$TEST_ENV$%"

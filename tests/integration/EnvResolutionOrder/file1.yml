@@ -1,0 +1,4 @@
+parameters:
+  my_parameter: "%my_parameter_2%"
+  my_parameter_2: "$MY_ENV_VAR$"
+
