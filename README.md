@@ -139,6 +139,8 @@ parameters:
     firstName: "Joe"
     lastName: "Bloggs"
     fullName: "%firstName% %lastName%"
+    array: ["foo", "bar"]
+    object: {"foo":"salad", "bar":"fish"}
 ```
 
 Parameters can have any scalar or array value.
@@ -170,6 +172,7 @@ services:
             - "first constructor argument"
             - 12345
             - false
+	    - {"foo":"salad", "bar":"fish"}
 ```
 
 ### Service injection
