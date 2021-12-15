@@ -1,0 +1,5 @@
+services:
+  Silktide\Syringe\IntegrationTests\Examples\ExampleClass:
+    factoryMethod: create
+    arguments:
+      - "Bar"

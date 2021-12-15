@@ -157,7 +157,7 @@ class FileConfig
             }
         }
 
-        foreach ($this->services as $serviceName => $definition) {
+        foreach ($this->services as $serviceName => &$definition) {
             foreach ($definition as $key => $value) {
                 if (!isset(self::ACCEPTABLE_SERVICE_KEYS[$key])) {
                     throw new ConfigException($key . " is not a valid services key");
@@ -185,8 +185,17 @@ class FileConfig
             }
 
             // Validate classes
+
             if (empty($definition["class"])) {
-                throw new ConfigException("The service definition for '{$serviceName}' does not have a class");
+                // If there's a backslash in the service name, we assume that we're using that as the className
+                if (strpos($serviceName, "\\") !== false) {
+                    $definition["class"] = $serviceName;
+                } else {
+                    throw new ConfigException(
+                        "The service definition for '{$serviceName}' neither has a class, nor is named using "
+                        . "namespaces"
+                    );
+                }
             }
 
             if (!class_exists($definition["class"]) && !interface_exists($definition["class"])) {
@@ -197,7 +206,8 @@ class FileConfig
             if (!empty($definition["factoryMethod"])) {
                 // If factoryMethod is set, then it must have either a factoryClass OR a factoryService, not both
                 if (!(isset($definition["factoryClass"]) xor isset($definition["factoryService"]))) {
-                    throw new ConfigException("The service definition for '{$serviceName}' should ONE of a factoryClass or a factoryService.");
+                    // If neither of these are set, then we assume that the factoryClass is the class itself
+                    $definition["factoryClass"] = $definition["class"];
                 }
             }
 
@@ -225,6 +235,7 @@ class FileConfig
                 }
             }
         }
+        unset($definition);
     }
 
     protected function namespace(string $string)
