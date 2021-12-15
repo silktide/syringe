@@ -1,0 +1,4 @@
+services:
+  Silktide\Syringe\IntegrationTests\Examples\ExampleClass:
+    arguments:
+      - "Foo"

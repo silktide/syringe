@@ -33,4 +33,9 @@ class ExampleClass
     {
         return $this->values[$key];
     }
+
+    public static function create(...$arguments)
+    {
+        return new self(...$arguments);
+    }
 }
